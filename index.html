@@ -1,0 +1,2200 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบวิเคราะห์ข้อมูลร้านค้าปลีก 3 สาขา | Data Analytics Executive Dashboard</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- External Data JS -->
+    <script src="./data.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Prompt', 'Inter', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0284c7',
+                            600: '#0369a1',
+                            700: '#075985',
+                            800: '#0c4a6e',
+                            900: '#082f49',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Prompt', 'Inter', sans-serif; }
+        .tab-btn.active {
+            color: #38bdf8;
+            border-bottom: 2px solid #38bdf8;
+            background-color: rgba(56, 189, 248, 0.1);
+            font-weight: 600;
+        }
+        .tab-btn {
+            border-bottom: 2px solid transparent;
+        }
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #f1f5f9; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .badge-normal { background-color: #dcfce7; color: #15803d; border: 1px solid #bbf7d0; }
+        .badge-warning { background-color: #fef9c3; color: #a16207; border: 1px solid #fef08a; }
+        .badge-danger { background-color: #ffe4e6; color: #be123c; border: 1px solid #fecdd3; }
+        .metric-card { transition: transform 0.2s ease, box-shadow 0.2s ease; }
+        .metric-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08); }
+        .filter-chip { transition: all 0.15s ease; }
+        .filter-chip:hover { transform: scale(1.02); }
+        .filter-chip.active { background-color: #0284c7; color: white; border-color: #0284c7; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Top Navigation Header -->
+    <header class="bg-slate-900 text-white shadow-xl sticky top-0 z-50 border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Brand / Title -->
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-500 to-indigo-600 flex items-center justify-center shadow-lg">
+                        <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                        </svg>
+                    </div>
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h1 class="text-base sm:text-lg font-bold tracking-tight text-white">RETAIL DATA ANALYTICS</h1>
+                            <span class="px-2 py-0.5 text-xs font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-full">Practice Competition</span>
+                        </div>
+                        <p class="text-xs text-slate-400 hidden sm:block">ระบบวิเคราะห์สต็อกและยอดขายร้านค้าปลีก 3 สาขา • พลิกข้อมูลดิบสู่กลยุทธ์ธุรกิจ</p>
+                    </div>
+                </div>
+
+                <!-- Info Badges -->
+                <div class="flex items-center space-x-2 sm:space-x-3 text-xs">
+                    <div class="hidden lg:flex items-center space-x-1.5 bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-700">
+                        <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                        <span>ข้อมูล: <b class="text-white">1,000 แถว / 20 คอลัมน์</b></span>
+                    </div>
+                    <div class="hidden md:flex bg-slate-800/90 px-3 py-1.5 rounded-lg border border-slate-700">
+                        <span>เวลา: <b class="text-sky-300">120 นาที</b></span>
+                    </div>
+                    <div class="bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/40 text-amber-300 px-3 py-1.5 rounded-lg font-medium shadow-sm">
+                        คะแนนเต็ม: <b>100 คะแนน</b>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tab Navigation Bar -->
+            <nav class="flex space-x-1 overflow-x-auto border-t border-slate-800 py-1 text-xs sm:text-sm font-medium scrollbar-none" id="mainTabNav">
+                <button onclick="switchTab('dashboard')" class="tab-btn active px-3 sm:px-4 py-2 rounded-t-lg transition flex items-center space-x-1.5 whitespace-nowrap text-slate-300 hover:text-white" data-tab="dashboard">
+                    <span>📊 แดชบอร์ดผู้บริหาร</span>
+                </button>
+                <button onclick="switchTab('missions')" class="tab-btn px-3 sm:px-4 py-2 rounded-t-lg transition flex items-center space-x-1.5 whitespace-nowrap text-slate-300 hover:text-white" data-tab="missions">
+                    <span>📋 ผ่าโจทย์ & เกณฑ์ 100 คะแนน</span>
+                </button>
+                <button onclick="switchTab('quality')" class="tab-btn px-3 sm:px-4 py-2 rounded-t-lg transition flex items-center space-x-1.5 whitespace-nowrap text-slate-300 hover:text-white" data-tab="quality">
+                    <span>🔍 ตรวจสอบคุณภาพข้อมูล</span>
+                    <span class="bg-rose-500/20 text-rose-300 text-[10px] px-1.5 py-0.5 rounded-full border border-rose-500/30">67 ผิดปกติ</span>
+                </button>
+                <button onclick="switchTab('comparison')" class="tab-btn px-3 sm:px-4 py-2 rounded-t-lg transition flex items-center space-x-1.5 whitespace-nowrap text-slate-300 hover:text-white" data-tab="comparison">
+                    <span>🏢 เปรียบเทียบ 3 สาขา & 7 หมวดหมู่</span>
+                </button>
+                <button onclick="switchTab('inventory')" class="tab-btn px-3 sm:px-4 py-2 rounded-t-lg transition flex items-center space-x-1.5 whitespace-nowrap text-slate-300 hover:text-white" data-tab="inventory">
+                    <span>⚠️ ความเสี่ยงสต็อก & สั่งด่วน</span>
+                </button>
+                <button onclick="switchTab('trends')" class="tab-btn px-3 sm:px-4 py-2 rounded-t-lg transition flex items-center space-x-1.5 whitespace-nowrap text-slate-300 hover:text-white" data-tab="trends">
+                    <span>📈 แนวโน้มตามเวลา (Time Trend)</span>
+                </button>
+                <button onclick="switchTab('insights')" class="tab-btn px-3 sm:px-4 py-2 rounded-t-lg transition flex items-center space-x-1.5 whitespace-nowrap text-slate-300 hover:text-white" data-tab="insights">
+                    <span>💡 บทสรุปเชิงธุรกิจ & คำถามท้าทาย</span>
+                </button>
+                <button onclick="switchTab('rawdata')" class="tab-btn px-3 sm:px-4 py-2 rounded-t-lg transition flex items-center space-x-1.5 whitespace-nowrap text-slate-300 hover:text-white" data-tab="rawdata">
+                    <span>📑 ตารางข้อมูล 1,000 แถว & ตัวกรองละเอียด</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+
+        <!-- ========================================== -->
+        <!-- TAB 1: EXECUTIVE DASHBOARD & KPI SUMMARY   -->
+        <!-- ========================================== -->
+        <section id="tab-dashboard" class="tab-content space-y-6">
+            
+            <!-- Welcome & Context Banner -->
+            <div class="bg-gradient-to-r from-sky-900 via-indigo-900 to-slate-900 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden">
+                <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-sky-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div class="relative z-10 max-w-3xl">
+                    <span class="inline-block px-3 py-1 rounded-full text-xs font-semibold bg-sky-500/20 text-sky-300 border border-sky-400/30 mb-2">Executive KPI Summary • ภารกิจที่ 2 (20 คะแนน)</span>
+                    <h2 class="text-xl sm:text-2xl font-bold tracking-tight text-white mb-2">ภาพรวมผลการดำเนินงานร้านค้าปลีก (3 สาขา)</h2>
+                    <p class="text-sm text-slate-300 leading-relaxed">
+                        สรุปผลการวิเคราะห์ข้อมูลการเคลื่อนไหวสินค้า 1,000 รายการ ตั้งแต่วันที่ 1 มกราคม 2025 ถึง 2 ตุลาคม 2026 โดยแยกความแตกต่างอย่างชัดเจนระหว่าง <b>"ยอดสะสมจากรายการตลอดช่วงเวลา"</b> กับ <b>"มูลค่าสต็อกคงเหลือภาพ ณ วันล่าสุด (Snapshot)"</b> เพื่อป้องกันข้อผิดพลาดในการรวมข้อมูลซ้ำซ้อน
+                    </p>
+                </div>
+            </div>
+
+            <!-- 6 Key Performance Indicators Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
+                
+                <!-- KPI 1: ยอดขายรวม -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm metric-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-medium text-slate-500 tracking-wider uppercase">ยอดขายรวม (Total Sales)</span>
+                        <div class="w-9 h-9 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold text-sm">฿</div>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" id="kpi-sales">฿142,350.00</div>
+                    <div class="mt-2 flex items-center text-xs text-slate-500 space-x-1">
+                        <span class="text-emerald-600 font-semibold flex items-center">
+                            <svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            ยอดสะสม
+                        </span>
+                        <span>จากยอดขาย 1,000 แถว (22 เดือน)</span>
+                    </div>
+                </div>
+
+                <!-- KPI 2: กำไรขั้นต้นรวม -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm metric-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-medium text-slate-500 tracking-wider uppercase">กำไรขั้นต้นรวม (Gross Profit)</span>
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" id="kpi-profit">฿58,738.60</div>
+                    <div class="mt-2 flex items-center text-xs text-slate-500 space-x-1">
+                        <span class="text-emerald-600 font-semibold flex items-center">
+                            <svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            ยอดสะสม
+                        </span>
+                        <span>สูตร: ขายออก × (ราคาขาย - ต้นทุน)</span>
+                    </div>
+                </div>
+
+                <!-- KPI 3: อัตรากำไรขั้นต้น (%) -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm metric-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-medium text-slate-500 tracking-wider uppercase">อัตรากำไรขั้นต้น (GP Margin)</span>
+                        <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center font-bold text-sm">%</div>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-indigo-600 tracking-tight" id="kpi-margin">41.26%</div>
+                    <div class="mt-2 flex items-center text-xs text-slate-500 space-x-1">
+                        <span class="text-indigo-600 font-semibold">อัตราส่วนภาพรวม</span>
+                        <span>(58,738.60 ÷ 142,350.00) × 100</span>
+                    </div>
+                </div>
+
+                <!-- KPI 4: จำนวนขายรวม -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm metric-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-medium text-slate-500 tracking-wider uppercase">จำนวนขายรวม (Units Sold)</span>
+                        <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/></svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight" id="kpi-qty">6,784 หน่วย</div>
+                    <div class="mt-2 flex items-center text-xs text-slate-500 space-x-1">
+                        <span class="text-amber-600 font-semibold flex items-center">
+                            <svg class="w-3.5 h-3.5 mr-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                            ยอดสะสม
+                        </span>
+                        <span>เฉลี่ย ~308 หน่วย/เดือน</span>
+                    </div>
+                </div>
+
+                <!-- KPI 5: จำนวนสินค้าเสียหาย -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm metric-card">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-medium text-slate-500 tracking-wider uppercase">สินค้าเสียหายรวม (Damaged Units)</span>
+                        <div class="w-9 h-9 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center">
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        </div>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-rose-600 tracking-tight" id="kpi-damaged">771 หน่วย</div>
+                    <div class="mt-2 flex items-center text-xs text-slate-500 space-x-1">
+                        <span class="text-rose-600 font-semibold">11.37% ของยอดขาย</span>
+                        <span>(ต้องเร่งควบคุม Loss prevention)</span>
+                    </div>
+                </div>
+
+                <!-- KPI 6: มูลค่าสต็อกคงเหลือปัจจุบัน (Snapshot ล่าสุด) -->
+                <div class="bg-gradient-to-br from-indigo-50/50 to-sky-50/50 rounded-2xl p-5 border-2 border-indigo-200 shadow-sm metric-card relative overflow-hidden">
+                    <div class="flex items-center justify-between mb-3">
+                        <span class="text-xs font-semibold text-indigo-900 tracking-wider uppercase">มูลค่าสต็อกปัจจุบัน (Latest Snapshot)</span>
+                        <span class="px-2 py-0.5 bg-indigo-600 text-white text-[10px] font-bold rounded-md uppercase tracking-wider">Point-in-Time</span>
+                    </div>
+                    <div class="text-2xl sm:text-3xl font-extrabold text-indigo-900 tracking-tight" id="kpi-stockval">฿64,548.50</div>
+                    <div class="mt-2 flex items-center text-xs text-indigo-700 space-x-1">
+                        <span class="font-bold">4,279 หน่วย</span>
+                        <span>(จาก 60 คู่สาขา+สินค้า ณ วันล่าสุด)</span>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Crucial Warning Callout: The Inventory Double Counting Trap -->
+            <div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-xl shadow-sm">
+                <div class="flex items-start space-x-3">
+                    <div class="flex-shrink-0 text-amber-600 mt-0.5">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                    </div>
+                    <div class="text-xs sm:text-sm text-amber-900 space-y-1">
+                        <p class="font-bold">สำคัญมาก - ระวังกับดักผลรวมสต็อกซ้ำซ้อน (Inventory Double Counting Trap):</p>
+                        <p>
+                            ในชุดข้อมูลมีบันทึกหลายวันของสินค้าและสาขาเดียวกัน <b>ห้ามนำคอลัมน์ "มูลค่าสต็อกปลายวัน_บาท" ของทั้ง 1,000 แถวมารวมกันเด็ดขาด</b> หากรวมทุกแถวจะได้ <b>฿1,020,240.90</b> ซึ่งผิดหลักการบัญชีและการวิเคราะห์อย่างรุนแรง เพราะเป็นการนับมูลค่าสินค้าชิ้นเดิมซ้ำทุกๆ วัน! ตัวเลขสต็อกปัจจุบันที่ถูกต้องตามนิยามโจทย์คือการดึง <b>Snapshot วันที่ล่าสุดของแต่ละคู่ สาขา + รหัสสินค้า (ทั้งหมด 60 คู่)</b> ซึ่งมีมูลค่าจริงเท่ากับ <b>฿64,548.50</b> (4,279 หน่วย)
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Monthly Trend Chart -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">แนวโน้มยอดขายและกำไรขั้นต้นรายเดือน</h3>
+                            <p class="text-xs text-slate-500">มกราคม 2025 - ตุลาคม 2026 (รวม 22 เดือน)</p>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 bg-sky-50 text-sky-700 font-semibold rounded-lg border border-sky-100">Time Trend</span>
+                    </div>
+                    <div class="h-72 w-full">
+                        <canvas id="chart-monthly-trend"></canvas>
+                    </div>
+                </div>
+
+                <!-- Category Performance Chart -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">ยอดขายและกำไรขั้นต้นแยกตามหมวดหมู่</h3>
+                            <p class="text-xs text-slate-500">จัดอันดับ 7 หมวดหมู่สินค้าหลัก</p>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 bg-indigo-50 text-indigo-700 font-semibold rounded-lg border border-indigo-100">Category Rank</span>
+                    </div>
+                    <div class="h-72 w-full">
+                        <canvas id="chart-category"></canvas>
+                    </div>
+                </div>
+
+                <!-- Branch Comparison Chart -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">เปรียบเทียบผลการดำเนินงาน 3 สาขา</h3>
+                            <p class="text-xs text-slate-500">ยอดขายรวม, กำไรขั้นต้น, และมูลค่าสต็อกปัจจุบัน</p>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 bg-emerald-50 text-emerald-700 font-semibold rounded-lg border border-emerald-100">Branch Analysis</span>
+                    </div>
+                    <div class="h-64 w-full">
+                        <canvas id="chart-branch"></canvas>
+                    </div>
+                </div>
+
+                <!-- Stock Status Distribution Chart -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm">
+                    <div class="flex items-center justify-between mb-4">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">สัดส่วนสถานะสต็อกภาพรวมปัจจุบัน</h3>
+                            <p class="text-xs text-slate-500">ประเมินจาก 60 รายการสินค้า ณ วันบันทึกล่าสุด</p>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 bg-rose-50 text-rose-700 font-semibold rounded-lg border border-rose-100">Inventory Status</span>
+                    </div>
+                    <div class="h-64 w-full flex items-center justify-center">
+                        <canvas id="chart-stock-status"></canvas>
+                    </div>
+                </div>
+            </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: PROBLEM BREAKDOWN & RUBRICS (100)   -->
+        <!-- ========================================== -->
+        <section id="tab-missions" class="tab-content hidden space-y-6">
+            
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-6">
+                <div class="border-b border-slate-200 pb-4">
+                    <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Competition Structure & Roadmap</span>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">โครงสร้างโจทย์การแข่งขัน & เกณฑ์การให้คะแนนฉบับสมบูรณ์ (100 คะแนน)</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        ถอดรหัสโจทย์ 5 หน้าอย่างละเอียด จำแนกเป็น 6 ภารกิจหลัก, 3 ชิ้นงานที่ต้องส่งมอบ, และพจนานุกรมข้อมูล (Data Dictionary) 20 คอลัมน์
+                    </p>
+                </div>
+
+                <!-- Overview Card Grid -->
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 text-center">
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="text-2xl font-bold text-slate-900">120 นาที</div>
+                        <div class="text-xs text-slate-500 mt-1">ระยะเวลาการแข่งขัน</div>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="text-2xl font-bold text-sky-600">100 คะแนน</div>
+                        <div class="text-xs text-slate-500 mt-1">คะแนนเต็ม</div>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="text-2xl font-bold text-indigo-600">3 ชิ้นงาน</div>
+                        <div class="text-xs text-slate-500 mt-1">ผลงานหลักที่ต้องส่ง</div>
+                    </div>
+                    <div class="p-4 bg-slate-50 rounded-xl border border-slate-200">
+                        <div class="text-2xl font-bold text-emerald-600">6 ภารกิจ</div>
+                        <div class="text-xs text-slate-500 mt-1">MISSION 01 - 06</div>
+                    </div>
+                </div>
+
+                <!-- 3 Required Deliverables -->
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 mb-3 flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-md bg-sky-600 text-white flex items-center justify-center text-xs">1</span>
+                        <span>3 ชิ้นงานหลักที่ต้องส่งมอบ (Deliverables)</span>
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                        <div class="p-4 rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50">
+                            <div class="font-bold text-slate-900 mb-1 flex items-center space-x-2">
+                                <span class="text-sky-500">📁</span>
+                                <span>ไฟล์วิเคราะห์ (Analytical Workbook)</span>
+                            </div>
+                            <p class="text-xs text-slate-600">Excel / Google Sheets / Power BI หรือไฟล์โค้ด โดยต้องมีสูตรคำนวณ ตารางสรุป และกราฟที่ตรวจสอบย้อนกลับได้</p>
+                        </div>
+                        <div class="p-4 rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50">
+                            <div class="font-bold text-slate-900 mb-1 flex items-center space-x-2">
+                                <span class="text-emerald-500">📑</span>
+                                <span>รายงานสรุป (Executive Report)</span>
+                            </div>
+                            <p class="text-xs text-slate-600">PDF หรือสไลด์ (ไม่เกิน 3 หน้า) สรุปข้อค้นพบสำคัญ ข้อเสนอแนะเชิงธุรกิจ และคำตอบสำหรับคำถามท้าทาย</p>
+                        </div>
+                        <div class="p-4 rounded-xl border border-slate-200 bg-gradient-to-b from-white to-slate-50">
+                            <div class="font-bold text-slate-900 mb-1 flex items-center space-x-2">
+                                <span class="text-amber-500">📝</span>
+                                <span>บันทึกการตรวจสอบข้อมูล (Audit Log)</span>
+                            </div>
+                            <p class="text-xs text-slate-600">ระบุปัญหาคุณภาพข้อมูลที่ตรวจพบ สมมติฐานที่ใช้ วิธีคำนวณ และวิธีจัดการข้อมูลผิดปกติ (Data Cleaning Record)</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 6 Missions Breakdown Table -->
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 mb-3 flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-md bg-sky-600 text-white flex items-center justify-center text-xs">2</span>
+                        <span>รายละเอียดโจทย์แยกย่อยรายภารกิจ (Missions 01 - 06)</span>
+                    </h3>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                        <table class="min-w-full divide-y divide-slate-200 text-xs sm:text-sm">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold">
+                                <tr>
+                                    <th class="px-4 py-3 text-left">ภารกิจ</th>
+                                    <th class="px-4 py-3 text-left">หัวข้อ & ขอบเขตงาน</th>
+                                    <th class="px-4 py-3 text-center">คะแนน</th>
+                                    <th class="px-4 py-3 text-left">สิ่งที่ต้องส่งมอบ (Deliverable)</th>
+                                    <th class="px-4 py-3 text-left">ประเด็นสำคัญ & กับดักที่ต้องระวัง</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 text-slate-700">
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-4 py-3 font-bold text-sky-700 whitespace-nowrap">ภารกิจที่ 1</td>
+                                    <td class="px-4 py-3">
+                                        <b>ตรวจสอบและเตรียมข้อมูล (Data Preparation)</b>
+                                        <ul class="list-disc list-inside text-xs text-slate-500 mt-1 space-y-0.5">
+                                            <li>ตรวจค่าว่าง, ข้อมูลซ้ำ, รูปแบบวันที่</li>
+                                            <li>ตรวจความสัมพันธ์รหัสสินค้ากับชื่อ/หมวดหมู่</li>
+                                            <li>ตรวจสูตรสต็อก: ต้นวัน + รับ - ขาย - เสียหาย</li>
+                                            <li>ตรวจความถูกต้องยอดขาย/กำไร/มูลค่าสต็อก</li>
+                                        </ul>
+                                    </td>
+                                    <td class="px-4 py-3 text-center font-bold text-slate-900">15</td>
+                                    <td class="px-4 py-3 text-xs">ตารางสรุปคุณภาพข้อมูล พร้อมตัวอย่างรายการผิดปกติและวิธีจัดการ</td>
+                                    <td class="px-4 py-3 text-xs text-rose-600 font-medium">พบสต็อกไม่สอดคล้อง 67 แถว (ขายเกินสต็อกจนติดลบ และพิมพ์ตัวเลขผิด)</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-4 py-3 font-bold text-sky-700 whitespace-nowrap">ภารกิจที่ 2</td>
+                                    <td class="px-4 py-3">
+                                        <b>สร้างตัวชี้วัดภาพรวม (KPI Summary)</b>
+                                        <ul class="list-disc list-inside text-xs text-slate-500 mt-1 space-y-0.5">
+                                            <li>คำนวณอย่างน้อย 6 ตัวชี้วัดหลัก</li>
+                                            <li>ระบุแหล่งคอลัมน์และสูตรที่ใช้อย่างชัดเจน</li>
+                                            <li>แยกยอดสะสม (Cumulative) กับภาพ ณ วันล่าสุด (Snapshot)</li>
+                                        </ul>
+                                    </td>
+                                    <td class="px-4 py-3 text-center font-bold text-slate-900">20</td>
+                                    <td class="px-4 py-3 text-xs">KPI Summary ที่อ่านค่าได้รวดเร็ว พร้อมคำอธิบายสั้นๆ</td>
+                                    <td class="px-4 py-3 text-xs text-amber-700 font-medium">ห้ามบวกมูลค่าสต็อก 1,000 แถว เพราะเป็นการนับซ้ำ ต้องใช้ Snapshot วันล่าสุด</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-4 py-3 font-bold text-sky-700 whitespace-nowrap">ภารกิจที่ 3</td>
+                                    <td class="px-4 py-3">
+                                        <b>เปรียบเทียบสาขาและหมวดหมู่สินค้า</b>
+                                        <ul class="list-disc list-inside text-xs text-slate-500 mt-1 space-y-0.5">
+                                            <li>เปรียบเทียบ ยอดขาย, กำไรขั้นต้น, GP% ทั้ง 3 สาขา</li>
+                                            <li>จัดอันดับหมวดหมู่สินค้าตามยอดขายและกำไร</li>
+                                            <li>ระบุส่วนที่ควรรักษาผลงานและส่วนที่ควรปรับปรุง</li>
+                                        </ul>
+                                    </td>
+                                    <td class="px-4 py-3 text-center font-bold text-slate-900">20</td>
+                                    <td class="px-4 py-3 text-xs">ตารางเปรียบเทียบอย่างน้อย 1 ตาราง และกราฟอย่างน้อย 2 กราฟ</td>
+                                    <td class="px-4 py-3 text-xs text-slate-600">ตรวจสอบสูตรคอลัมน์ประมาณการก่อนใช้ นำเสนอเหตุผลเชิงตัวเลขสนับสนุน</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-4 py-3 font-bold text-sky-700 whitespace-nowrap">ภารกิจที่ 4</td>
+                                    <td class="px-4 py-3">
+                                        <b>วิเคราะห์ความเสี่ยงด้านสต็อก (Inventory Risk)</b>
+                                        <ul class="list-disc list-inside text-xs text-slate-500 mt-1 space-y-0.5">
+                                            <li>วิเคราะห์สถานะ: ปกติ, ใกล้หมด, ต้องสั่งซื้อ</li>
+                                            <li>เทียบสต็อกปลายวันกับจุดสั่งซื้อขั้นต่ำ</li>
+                                            <li>ตรวจความสอดคล้องสถานะสต็อกกับของจริง</li>
+                                            <li>จัดทำรายการสินค้าเร่งด่วนอย่างน้อย 5 รายการ</li>
+                                        </ul>
+                                    </td>
+                                    <td class="px-4 py-3 text-center font-bold text-slate-900">20</td>
+                                    <td class="px-4 py-3 text-xs">ตารางจัดลำดับความเสี่ยง และข้อเสนอการเติมสินค้า/ตรวจนับ</td>
+                                    <td class="px-4 py-3 text-xs text-rose-600 font-medium">ต้องคัดกรองเฉพาะวันที่ล่าสุดของแต่ละคู่ สาขา+สินค้า (60 คู่) ก่อนวิเคราะห์</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-4 py-3 font-bold text-sky-700 whitespace-nowrap">ภารกิจที่ 5</td>
+                                    <td class="px-4 py-3">
+                                        <b>วิเคราะห์แนวโน้มตามเวลา (Time Trend)</b>
+                                        <ul class="list-disc list-inside text-xs text-slate-500 mt-1 space-y-0.5">
+                                            <li>สรุปยอดขายและกำไรขั้นต้นแยกตามเดือน</li>
+                                            <li>แสดงแนวโน้มด้วยกราฟเส้นหรือกราฟที่เหมาะสม</li>
+                                            <li>ระบุเดือนสูงสุด/ต่ำสุด และข้อสังเกต</li>
+                                            <li>ระบุข้อจำกัดในการเปรียบเทียบเวลา</li>
+                                        </ul>
+                                    </td>
+                                    <td class="px-4 py-3 text-center font-bold text-slate-900">15</td>
+                                    <td class="px-4 py-3 text-xs">ตารางสรุปรายเดือน กราฟแนวโน้ม และข้อค้นพบอย่างน้อย 2 ข้อ</td>
+                                    <td class="px-4 py-3 text-xs text-amber-700 font-medium">เดือน ต.ค. 2026 มีข้อมูลแค่ 2 วัน (1-2 ต.ค.) ต้องชี้แจงว่าเป็นข้อจำกัดของข้อมูล</td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-4 py-3 font-bold text-sky-700 whitespace-nowrap">ภารกิจที่ 6</td>
+                                    <td class="px-4 py-3">
+                                        <b>สรุปเชิงธุรกิจและข้อเสนอแนะ (Business Insight)</b>
+                                        <ul class="list-disc list-inside text-xs text-slate-500 mt-1 space-y-0.5">
+                                            <li>3 ข้อค้นพบสำคัญ (มีตัวเลข/กราฟรองรับ)</li>
+                                            <li>3 ข้อเสนอแนะปฏิบัติได้จริง เรียงลำดับความสำคัญ</li>
+                                            <li>ระบุผลที่คาดว่าจะเกิดและตัวชี้วัดติดตามผล</li>
+                                            <li>ตอบคำถามท้าทาย: 1 เดือน 1 ปัญหา</li>
+                                        </ul>
+                                    </td>
+                                    <td class="px-4 py-3 text-center font-bold text-slate-900">10</td>
+                                    <td class="px-4 py-3 text-xs">สรุปผู้บริหาร 1 หน้า หรือสไลด์ไม่เกิน 3 หน้า</td>
+                                    <td class="px-4 py-3 text-xs text-emerald-700 font-medium">คำตอบต้องเชื่อมโยงกับข้อมูล มีหลักฐานเชิงประจักษ์ ไม่ใช่ความคิดเห็นลอยๆ</td>
+                                </tr>
+                            </tbody>
+                            <tfoot class="bg-slate-100 font-bold text-slate-900">
+                                <tr>
+                                    <td colspan="2" class="px-4 py-3 text-right">รวมคะแนนทั้งหมด:</td>
+                                    <td class="px-4 py-3 text-center text-base text-sky-700">100</td>
+                                    <td colspan="2" class="px-4 py-3 text-xs text-slate-500">เกณฑ์การประเมิน: ความถูกต้อง, ความลึกซึ้ง, การตีความตัวเลข, และข้อเสนอที่ทำได้จริง</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Data Dictionary (20 Columns) -->
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 mb-3 flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-md bg-sky-600 text-white flex items-center justify-center text-xs">3</span>
+                        <span>พจนานุกรมข้อมูล (Data Dictionary - 20 คอลัมน์)</span>
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">1. รหัสรายการ:</span> รหัสอ้างอิงเฉพาะของแถวข้อมูล (ใช้ตรวจ Duplicate)
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">2. วันที่:</span> วันที่บันทึกข้อมูล รูปแบบ YYYY-MM-DD (1 ม.ค. 2025 - 2 ต.ค. 2026)
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">3. สาขา:</span> สาขาที่บันทึกรายการ (สาขาตลาด, สาขาชุมชน, สาขาวิทยาลัย)
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">4. รหัสสินค้า / 5. ชื่อสินค้า:</span> P001 - P020 รวม 20 รหัสสินค้า
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">6. หมวดหมู่:</span> 7 กลุ่ม (เครื่องดื่ม, ขนม, ของใช้ในบ้าน, ของใช้ส่วนตัว, อุปกรณ์อิเล็กทรอนิกส์, เครื่องเขียน, อาหารและของกิน)
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">7. ผู้จำหน่าย:</span> 4 ราย (บริษัท เอ จำกัด, หจก. บี ซัพพลาย, บริษัท ซี เทรด, ร้านค้าส่ง ดี)
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">8. สต็อกต้นวัน_หน่วย:</span> จำนวนสินค้าคงเหลือยกมาจากวันก่อนหน้า (หน่วย)
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">9. รับเข้า_หน่วย:</span> จำนวนสินค้าที่ได้รับส่งเข้าคลังระหว่างวัน
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">10. ขายออก_หน่วย:</span> จำนวนสินค้าที่ขายออกได้ระหว่างวัน
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">11. เสียหาย_หน่วย:</span> จำนวนสินค้าที่ชำรุด เสื่อมสภาพ หรือสูญหายระหว่างวัน
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">12. สต็อกปลายวัน_หน่วย:</span> จำนวนสินค้าคงเหลือปลายวันตามระบบบันทึก
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">13. จุดสั่งซื้อขั้นต่ำ_หน่วย:</span> ค่า Reorder Point ที่ต้องส่งคำสั่งซื้อสินค้า
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">14. ราคาขายต่อหน่วย_บาท:</span> ราคาขายหน้าร้านต่อชิ้น
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">15. ต้นทุนต่อหน่วย_บาท:</span> ราคาทุนซื้อต่อชิ้น
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">16. มูลค่าสต็อกปลายวัน_บาท:</span> มูลค่าสินค้าคงเหลือ (สต็อกปลายวัน × ต้นทุน)
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">17. ยอดขายประมาณการ_บาท:</span> ยอดขายของรายการ (ขายออก × ราคาขาย)
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">18. กำไรขั้นต้นประมาณการ_บาท:</span> กำไรของรายการ (ขายออก × [ราคาขาย - ต้นทุน])
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">19. สถานะสต็อก:</span> ปกติ, ใกล้หมด, ต้องสั่งซื้อ
+                        </div>
+                        <div class="p-3 bg-slate-50 rounded-lg border border-slate-200 space-y-1">
+                            <span class="font-bold text-slate-800">20. พนักงานบันทึก:</span> รหัสพนักงานผู้ลงข้อมูล (พนักงาน 01 - 06)
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: DATA PREPARATION & AUDIT QUALITY    -->
+        <!-- ========================================== -->
+        <section id="tab-quality" class="tab-content hidden space-y-6">
+            
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Mission 01 Deliverable • 15 คะแนน</span>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">รายงานการตรวจสอบคุณภาพและเตรียมข้อมูล (Data Preparation Audit Report)</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        ผลการตรวจสอบความสมบูรณ์ ความถูกต้องของสูตร และความสอดคล้องเชิงตรรกะในชุดข้อมูล 1,000 แถว
+                    </p>
+                </div>
+
+                <!-- 4 Audit Summary Cards -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+                        <div class="text-xs font-semibold text-emerald-700">ค่าว่างในข้อมูล (Missing Values)</div>
+                        <div class="text-2xl font-bold mt-1">0 รายการ</div>
+                        <div class="text-xs text-emerald-600 mt-1">สมบูรณ์ครบ 20 คอลัมน์ 100%</div>
+                    </div>
+                    <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+                        <div class="text-xs font-semibold text-emerald-700">รหัสรายการซ้ำ (Duplicate IDs)</div>
+                        <div class="text-2xl font-bold mt-1">0 รายการ</div>
+                        <div class="text-xs text-emerald-600 mt-1">รหัส STK00001 - STK01000 ไม่ซ้ำ</div>
+                    </div>
+                    <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-900">
+                        <div class="text-xs font-semibold text-emerald-700">ความสอดคล้องรหัสสินค้า</div>
+                        <div class="text-2xl font-bold mt-1">100% ผ่าน</div>
+                        <div class="text-xs text-emerald-600 mt-1">P001 - P020 จับคู่ชื่อและหมวดถูกต้อง</div>
+                    </div>
+                    <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900">
+                        <div class="text-xs font-semibold text-rose-700">สต็อกไม่สอดคล้องตามสูตร</div>
+                        <div class="text-2xl font-bold mt-1">67 แถว (6.7%)</div>
+                        <div class="text-xs text-rose-600 mt-1">ต้นวัน+รับ-ขาย-เสียหาย ≠ ปลายวัน</div>
+                    </div>
+                </div>
+
+                <!-- Formula Verification Section -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-3">
+                    <h3 class="text-sm font-bold text-slate-800">ผลการตรวจสอบความถูกต้องของสูตรคำนวณ (Formula Integrity Check)</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700">ยอดขายประมาณการ:</span>
+                            <div class="text-emerald-600 font-semibold mt-1">✓ ถูกต้อง 1,000 / 1,000 แถว (0 ผิดพลาด)</div>
+                            <div class="text-slate-500 mt-0.5">สูตร: ขายออก × ราคาขายต่อหน่วย</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700">กำไรขั้นต้นประมาณการ:</span>
+                            <div class="text-emerald-600 font-semibold mt-1">✓ ถูกต้อง 1,000 / 1,000 แถว (0 ผิดพลาด)</div>
+                            <div class="text-slate-500 mt-0.5">สูตร: ขายออก × (ราคาขาย - ต้นทุน)</div>
+                        </div>
+                        <div class="bg-white p-3 rounded-lg border border-slate-200">
+                            <span class="font-bold text-slate-700">มูลค่าสต็อกปลายวัน:</span>
+                            <div class="text-emerald-600 font-semibold mt-1">✓ ถูกต้อง 1,000 / 1,000 แถว (0 ผิดพลาด)</div>
+                            <div class="text-slate-500 mt-0.5">สูตร: สต็อกปลายวัน × ต้นทุนต่อหน่วย</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Deep-dive on 67 Stock Mismatches -->
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 mb-2">การจำแนกสาเหตุของรายการสต็อกผิดปกติ 67 แถว และแนวทางแก้ไข</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs sm:text-sm">
+                        <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/60 space-y-2">
+                            <div class="font-bold text-amber-900 flex items-center space-x-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span>
+                                <span>กรณีที่ 1: ขายเกินสต็อกจนระบบตัดเหลือ 0 (Stockout Clipping - 24 แถว)</span>
+                            </div>
+                            <p class="text-slate-600 text-xs">
+                                <b>ตัวอย่าง STK00009:</b> วันที่ 2025-01-03 สาขาชุมชน (น้ำดื่ม 600 มล.) สต็อกต้นวัน 4 + รับเข้า 5 - ขายออก 17 - เสียหาย 0 = <b>-8 หน่วย</b> แต่ระบบบันทึกสต็อกปลายวันเป็น <b>0</b> เนื่องจากสินค้าจริงไม่สามารถติดลบได้<br>
+                                <b>วิธีจัดการ:</b> ในการคำนวณยอดขาย/กำไรให้ยึดยอดขายจริง แต่ต้อง Flag ระบบแจ้งเตือนบันทึกสินค้าเข้าล่าช้า (Goods Receipt Delay)
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-xl border border-rose-200 bg-rose-50/60 space-y-2">
+                            <div class="font-bold text-rose-900 flex items-center space-x-1.5">
+                                <span class="w-2.5 h-2.5 rounded-full bg-rose-500"></span>
+                                <span>กรณีที่ 2: พิมพ์ตัวเลขผิดพลาดโดยมนุษย์ (Typo / Data Entry Errors - 43 แถว)</span>
+                            </div>
+                            <p class="text-slate-600 text-xs">
+                                <b>ตัวอย่าง STK00045:</b> ต้นวัน 85 + รับ 15 - ขาย 7 - เสียหาย 2 = <b>91 หน่วย</b> แต่ระบบพิมพ์บันทึกสต็อกปลายวันเป็น <b>6 หน่วย</b> (ตกเลข 9 หรือพิมพ์ผิด)<br>
+                                <b>วิธีจัดการ:</b> ปรับปรุงระบบฐานข้อมูลให้คำนวณฟิลด์สต็อกปลายวันแบบอัตโนมัติ (Calculated Column) และเพิ่ม Validation Rule ห้ามพิมพ์เอง
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Staff Error Breakdown -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
+                    <h3 class="text-sm font-bold text-slate-800 mb-2">สถิติข้อผิดพลาดสต็อกไม่สอดคล้องแยกตามพนักงานบันทึก (6 ราย)</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-6 gap-2 text-center text-xs">
+                        <div class="p-2 bg-white rounded border border-slate-200">
+                            <div class="text-slate-500">พนักงาน 02</div>
+                            <div class="text-base font-bold text-rose-600">15 แถว</div>
+                            <div class="text-[10px] text-slate-400">สูงสุด (22.4%)</div>
+                        </div>
+                        <div class="p-2 bg-white rounded border border-slate-200">
+                            <div class="text-slate-500">พนักงาน 01</div>
+                            <div class="text-base font-bold text-rose-600">12 แถว</div>
+                            <div class="text-[10px] text-slate-400">17.9%</div>
+                        </div>
+                        <div class="p-2 bg-white rounded border border-slate-200">
+                            <div class="text-slate-500">พนักงาน 03</div>
+                            <div class="text-base font-bold text-slate-700">11 แถว</div>
+                            <div class="text-[10px] text-slate-400">16.4%</div>
+                        </div>
+                        <div class="p-2 bg-white rounded border border-slate-200">
+                            <div class="text-slate-500">พนักงาน 05</div>
+                            <div class="text-base font-bold text-slate-700">11 แถว</div>
+                            <div class="text-[10px] text-slate-400">16.4%</div>
+                        </div>
+                        <div class="p-2 bg-white rounded border border-slate-200">
+                            <div class="text-slate-500">พนักงาน 06</div>
+                            <div class="text-base font-bold text-slate-700">11 แถว</div>
+                            <div class="text-[10px] text-slate-400">16.4%</div>
+                        </div>
+                        <div class="p-2 bg-white rounded border border-slate-200">
+                            <div class="text-slate-500">พนักงาน 04</div>
+                            <div class="text-base font-bold text-emerald-600">7 แถว</div>
+                            <div class="text-[10px] text-slate-400">ต่ำสุด (10.4%)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table of Anomalies with Detailed Filters -->
+                <div class="space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800">ตารางแสดงรายการความผิดปกติของสต็อก 67 แถว (Audit Anomaly Log)</h3>
+                            <p class="text-xs text-slate-500">กรองดูเฉพาะประเภทข้อผิดพลาด สาขา หรือพนักงานที่ต้องการตรวจสอบ</p>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 rounded-lg font-semibold" id="anomaly-filter-count">แสดง 67 / 67 แถว</span>
+                    </div>
+
+                    <!-- Anomaly Filters Bar -->
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">กรองประเภทความผิดปกติ:</label>
+                            <select id="anomalyTypeFilter" onchange="filterAnomalyTable()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs">
+                                <option value="">ทั้งหมด (67 แถวผิดปกติ)</option>
+                                <option value="stockout_clip">ขายเกินสต็อกตัดเป็น 0 (24 แถว)</option>
+                                <option value="typo">พิมพ์ตัวเลขผิดพลาด Typo (43 แถว)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">กรองสาขา:</label>
+                            <select id="anomalyBranchFilter" onchange="filterAnomalyTable()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs">
+                                <option value="">ทุกสาขา (3 สาขา)</option>
+                                <option value="สาขาตลาด">สาขาตลาด</option>
+                                <option value="สาขาชุมชน">สาขาชุมชน</option>
+                                <option value="สาขาวิทยาลัย">สาขาวิทยาลัย</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">กรองพนักงานบันทึก:</label>
+                            <select id="anomalyStaffFilter" onchange="filterAnomalyTable()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs">
+                                <option value="">ทุกคน (พนักงาน 01 - 06)</option>
+                                <option value="พนักงาน 01">พนักงาน 01 (12 แถว)</option>
+                                <option value="พนักงาน 02">พนักงาน 02 (15 แถว)</option>
+                                <option value="พนักงาน 03">พนักงาน 03 (11 แถว)</option>
+                                <option value="พนักงาน 04">พนักงาน 04 (7 แถว)</option>
+                                <option value="พนักงาน 05">พนักงาน 05 (11 แถว)</option>
+                                <option value="พนักงาน 06">พนักงาน 06 (11 แถว)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto max-h-72 border border-slate-200 rounded-xl">
+                        <table class="min-w-full divide-y divide-slate-200 text-xs">
+                            <thead class="bg-slate-50 sticky top-0 text-slate-700 font-semibold">
+                                <tr>
+                                    <th class="px-3 py-2 text-left">รหัสรายการ</th>
+                                    <th class="px-3 py-2 text-left">วันที่</th>
+                                    <th class="px-3 py-2 text-left">สาขา</th>
+                                    <th class="px-3 py-2 text-left">สินค้า</th>
+                                    <th class="px-3 py-2 text-right">ต้นวัน</th>
+                                    <th class="px-3 py-2 text-right">รับเข้า</th>
+                                    <th class="px-3 py-2 text-right">ขายออก</th>
+                                    <th class="px-3 py-2 text-right">เสียหาย</th>
+                                    <th class="px-3 py-2 text-right text-rose-600 font-bold">บันทึกจริง</th>
+                                    <th class="px-3 py-2 text-right text-sky-600 font-bold">สูตรคำนวณ</th>
+                                    <th class="px-3 py-2 text-right font-bold">ผลต่าง (Diff)</th>
+                                    <th class="px-3 py-2 text-left">ผู้บันทึก</th>
+                                </tr>
+                            </thead>
+                            <tbody id="anomaly-tbody" class="divide-y divide-slate-200 text-slate-600">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: BRANCH & CATEGORY COMPARISON        -->
+        <!-- ========================================== -->
+        <section id="tab-comparison" class="tab-content hidden space-y-6">
+            
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Mission 03 Deliverable • 20 คะแนน</span>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">การเปรียบเทียบผลการดำเนินงาน 3 สาขา และ 7 หมวดหมู่สินค้า</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        เปรียบเทียบยอดขาย กำไรขั้นต้น อัตรากำไรขั้นต้น และสถานะสินค้าคงเหลือ เพื่อชี้ชัดสาขาและหมวดหมู่ที่ควรรักษาผลงาน หรือควรปรับปรุงเร่งด่วน
+                    </p>
+                </div>
+
+                <!-- 3 Branches Comparison Table -->
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 mb-3">1. ตารางเปรียบเทียบผลการดำเนินงานทั้ง 3 สาขา</h3>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
+                        <table class="min-w-full divide-y divide-slate-200 text-xs sm:text-sm">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold">
+                                <tr>
+                                    <th class="px-4 py-3 text-left">สาขาร้านค้า</th>
+                                    <th class="px-4 py-3 text-right">ยอดขายรวม (บาท)</th>
+                                    <th class="px-4 py-3 text-right">สัดส่วนยอดขาย</th>
+                                    <th class="px-4 py-3 text-right">กำไรขั้นต้น (บาท)</th>
+                                    <th class="px-4 py-3 text-right text-indigo-700 font-bold">GP Margin (%)</th>
+                                    <th class="px-4 py-3 text-right">ปริมาณขาย (หน่วย)</th>
+                                    <th class="px-4 py-3 text-right">สินค้าเสียหาย (หน่วย)</th>
+                                    <th class="px-4 py-3 text-right text-sky-700 font-bold">สต็อกปัจจุบัน (Snapshot)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 text-slate-700">
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-4 py-3 font-bold text-slate-900 flex items-center space-x-2">
+                                        <span class="w-3 h-3 rounded-full bg-sky-500"></span>
+                                        <span>สาขาตลาด</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-semibold">฿48,658.00</td>
+                                    <td class="px-4 py-3 text-right">34.18% (อันดับ 1)</td>
+                                    <td class="px-4 py-3 text-right font-semibold text-emerald-600">฿19,996.10</td>
+                                    <td class="px-4 py-3 text-right font-bold text-indigo-600">41.10%</td>
+                                    <td class="px-4 py-3 text-right">2,335</td>
+                                    <td class="px-4 py-3 text-right text-rose-600">265 (11.3%)</td>
+                                    <td class="px-4 py-3 text-right font-bold text-rose-600">฿12,145.70 <span class="text-[10px] block text-rose-500">(สต็อกต่ำสุด เสี่ยงขาดของ)</span></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-4 py-3 font-bold text-slate-900 flex items-center space-x-2">
+                                        <span class="w-3 h-3 rounded-full bg-indigo-500"></span>
+                                        <span>สาขาชุมชน</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-semibold">฿47,565.00</td>
+                                    <td class="px-4 py-3 text-right">33.41% (อันดับ 2)</td>
+                                    <td class="px-4 py-3 text-right font-semibold text-emerald-600">฿19,587.60</td>
+                                    <td class="px-4 py-3 text-right font-bold text-indigo-600">41.18%</td>
+                                    <td class="px-4 py-3 text-right">2,209</td>
+                                    <td class="px-4 py-3 text-right text-rose-600">242 (11.0%)</td>
+                                    <td class="px-4 py-3 text-right font-bold text-amber-600">฿31,974.10 <span class="text-[10px] block text-amber-600">(สต็อกจมสูงสุด 49.5%)</span></td>
+                                </tr>
+                                <tr class="hover:bg-slate-50/80">
+                                    <td class="px-4 py-3 font-bold text-slate-900 flex items-center space-x-2">
+                                        <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                                        <span>สาขาวิทยาลัย</span>
+                                    </td>
+                                    <td class="px-4 py-3 text-right font-semibold">฿46,127.00</td>
+                                    <td class="px-4 py-3 text-right">32.40% (อันดับ 3)</td>
+                                    <td class="px-4 py-3 text-right font-semibold text-emerald-600">฿19,154.90</td>
+                                    <td class="px-4 py-3 text-right font-bold text-indigo-600">41.53% <span class="text-[10px] text-emerald-600 font-normal">(GP สูงสุด)</span></td>
+                                    <td class="px-4 py-3 text-right">2,240</td>
+                                    <td class="px-4 py-3 text-right text-rose-600">264 (11.8%)</td>
+                                    <td class="px-4 py-3 text-right font-bold text-slate-700">฿20,428.70 <span class="text-[10px] block text-slate-500">(สต็อกสมดุล)</span></td>
+                                </tr>
+                            </tbody>
+                            <tfoot class="bg-slate-100 font-bold text-slate-900">
+                                <tr>
+                                    <td class="px-4 py-3">รวมทั้ง 3 สาขา</td>
+                                    <td class="px-4 py-3 text-right">฿142,350.00</td>
+                                    <td class="px-4 py-3 text-right">100.00%</td>
+                                    <td class="px-4 py-3 text-right text-emerald-700">฿58,738.60</td>
+                                    <td class="px-4 py-3 text-right text-indigo-700">41.26%</td>
+                                    <td class="px-4 py-3 text-right">6,784</td>
+                                    <td class="px-4 py-3 text-right text-rose-600">771</td>
+                                    <td class="px-4 py-3 text-right text-sky-800">฿64,548.50</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Strategic Branch Commentary -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs sm:text-sm">
+                    <div class="p-4 rounded-xl border border-sky-200 bg-sky-50/50 space-y-1.5">
+                        <span class="font-bold text-sky-900">สาขาตลาด (ควรรักษา & เติมสต็อก):</span>
+                        <p class="text-slate-600 text-xs">
+                            สร้างยอดขายสูงสุด ฿48,658 (34.18%) หมุนเวียนสินค้าไวมาก <b>แต่สต็อกปลายวันเหลือเพียง ฿12,145.70 (18.8% ของสต็อกรวม)</b> ส่งผลให้เกิดปัญหาสินค้าหมดสต็อก (Stockout) บ่อยครั้ง เช่น สายชาร์จ USB และขนมปังกรอบเหลือ 0 หน่วย! ควรรีบเติมสต็อกเพื่อไม่ให้เสียโอกาสขาย
+                        </p>
+                    </div>
+                    <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/50 space-y-1.5">
+                        <span class="font-bold text-amber-900">สาขาชุมชน (ส่วนที่ควรปรับปรุง):</span>
+                        <p class="text-slate-600 text-xs">
+                            สร้างยอดขายใกล้เคียงกับตลาด แต่ <b>มีมูลค่าสต็อกจมสูงถึง ฿31,974.10 (คิดเป็นเกือบ 50% ของสต็อกทั้งระบบ!)</b> ทำให้เกิดต้นทุนถือครองสินค้า (Holding Cost) และเสี่ยงสินค้าเสื่อมสภาพ ควรระบายสต็อกส่วนเกิน หรือปรับโควตาโอนย้ายไปยังสาขาตลาด
+                        </p>
+                    </div>
+                    <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/50 space-y-1.5">
+                        <span class="font-bold text-emerald-900">สาขาวิทยาลัย (รักษาอัตรากำไร):</span>
+                        <p class="text-slate-600 text-xs">
+                            แม้ยอดขายรวมเป็นอันดับ 3 (฿46,127) แต่ <b>มีอัตรากำไรขั้นต้นสูงสุด (41.53%)</b> เพราะขายสินค้าหมวดเครื่องเขียนและของใช้ส่วนตัวที่มี Margin สูง ควรเน้นรักษาฐานลูกค้ากลุ่มนักศึกษา และเพิ่มสินค้าเครื่องเขียนกลุ่ม Premium
+                        </p>
+                    </div>
+                </div>
+
+                <!-- 7 Categories Ranking Table -->
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 mb-3">2. ตารางจัดอันดับผลงาน 7 หมวดหมู่สินค้า (Category Performance & Margin)</h3>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
+                        <table class="min-w-full divide-y divide-slate-200 text-xs sm:text-sm">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold">
+                                <tr>
+                                    <th class="px-3 py-2.5 text-center">อันดับยอดขาย</th>
+                                    <th class="px-4 py-2.5 text-left">หมวดหมู่สินค้า</th>
+                                    <th class="px-4 py-2.5 text-right">ยอดขายรวม (บาท)</th>
+                                    <th class="px-4 py-2.5 text-right">สัดส่วนยอดขาย</th>
+                                    <th class="px-4 py-2.5 text-right">กำไรขั้นต้น (บาท)</th>
+                                    <th class="px-4 py-2.5 text-right font-bold text-indigo-700">GP Margin (%)</th>
+                                    <th class="px-4 py-2.5 text-right">ปริมาณขาย (หน่วย)</th>
+                                    <th class="px-4 py-2.5 text-right">เสียหาย (หน่วย)</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 text-slate-700" id="category-tbody">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 5: INVENTORY RISK & REORDER (SNAPSHOT) -->
+        <!-- ========================================== -->
+        <section id="tab-inventory" class="tab-content hidden space-y-6">
+            
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Mission 04 Deliverable • 20 คะแนน</span>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">การวิเคราะห์ความเสี่ยงด้านสต็อก & รายการสินค้าสั่งซื้อเร่งด่วน</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        คัดกรองข้อมูล Snapshot วันที่ล่าสุดของแต่ละคู่ (สาขา + รหัสสินค้า) รวม 60 รายการ เพื่อชี้ชัดสินค้าที่วิกฤตและเสี่ยงต่อการขาดสต็อก
+                    </p>
+                </div>
+
+                <!-- Snapshot vs All Comparison Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl border border-rose-200 bg-rose-50/70">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-rose-800 uppercase">สถานะ: ต้องสั่งซื้อ (Out/Low Stock)</span>
+                            <span class="px-2 py-0.5 bg-rose-600 text-white rounded text-xs font-bold">55.0%</span>
+                        </div>
+                        <div class="text-2xl font-extrabold text-rose-900 mt-2">33 รายการ</div>
+                        <div class="text-xs text-rose-700 mt-1">สต็อกต่ำกว่าจุดสั่งซื้อขั้นต่ำ (Reorder Point) ต้องเร่งสั่งซื้อด่วน</div>
+                    </div>
+                    <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/70">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-amber-800 uppercase">สถานะ: ใกล้หมด (Warning)</span>
+                            <span class="px-2 py-0.5 bg-amber-600 text-white rounded text-xs font-bold">18.3%</span>
+                        </div>
+                        <div class="text-2xl font-extrabold text-amber-900 mt-2">11 รายการ</div>
+                        <div class="text-xs text-amber-700 mt-1">สต็อกอยู่ในระดับเฝ้าระวัง เตรียมเปิด PO ภายใน 3-5 วัน</div>
+                    </div>
+                    <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/70">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold text-emerald-800 uppercase">สถานะ: ปกติ (Healthy)</span>
+                            <span class="px-2 py-0.5 bg-emerald-600 text-white rounded text-xs font-bold">26.7%</span>
+                        </div>
+                        <div class="text-2xl font-extrabold text-emerald-900 mt-2">16 รายการ</div>
+                        <div class="text-xs text-emerald-700 mt-1">สต็อกเพียงพอต่อความต้องการขาย ไม่มีสัญญาณขาดแคลน</div>
+                    </div>
+                </div>
+
+                <!-- Urgent Items with Filters -->
+                <div class="space-y-3">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                        <div>
+                            <h3 class="text-base font-bold text-slate-900">รายการสินค้าสั่งซื้อเร่งด่วนสูงสุด (Top Urgent Reorder Items)</h3>
+                            <p class="text-xs text-slate-500">คัดเลือกจาก 60 คู่สาขา-สินค้า ณ Snapshot ล่าสุด</p>
+                        </div>
+                        <span class="text-xs text-rose-600 font-semibold bg-rose-50 px-2 py-1 rounded border border-rose-200" id="urgent-filter-count">แสดง 10 รายการวิกฤต</span>
+                    </div>
+
+                    <!-- Urgent Branch / Category Filter Bar -->
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">กรองสาขา (เฉพาะตารางสต็อกด่วน):</label>
+                            <select id="urgentBranchFilter" onchange="filterUrgentTable()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs">
+                                <option value="">ทุกสาขา (ตลาด, ชุมชน, วิทยาลัย)</option>
+                                <option value="สาขาตลาด">สาขาตลาด (ขาดสต็อกรุนแรง)</option>
+                                <option value="สาขาชุมชน">สาขาชุมชน</option>
+                                <option value="สาขาวิทยาลัย">สาขาวิทยาลัย</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1">กรองหมวดหมู่สินค้า:</label>
+                            <select id="urgentCategoryFilter" onchange="filterUrgentTable()" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white text-xs">
+                                <option value="">ทุกหมวดหมู่ (7 หมวดหมู่)</option>
+                                <option value="อุปกรณ์อิเล็กทรอนิกส์">อุปกรณ์อิเล็กทรอนิกส์</option>
+                                <option value="ขนม">ขนม</option>
+                                <option value="เครื่องเขียน">เครื่องเขียน</option>
+                                <option value="เครื่องดื่ม">เครื่องดื่ม</option>
+                                <option value="ของใช้ในบ้าน">ของใช้ในบ้าน</option>
+                                <option value="ของใช้ส่วนตัว">ของใช้ส่วนตัว</option>
+                                <option value="อาหารและของกิน">อาหารและของกิน</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl shadow-sm">
+                        <table class="min-w-full divide-y divide-slate-200 text-xs sm:text-sm">
+                            <thead class="bg-slate-50 text-slate-700 font-semibold">
+                                <tr>
+                                    <th class="px-3 py-3 text-center">ลำดับ</th>
+                                    <th class="px-4 py-3 text-left">สาขา</th>
+                                    <th class="px-4 py-3 text-left">สินค้า (รหัส)</th>
+                                    <th class="px-4 py-3 text-left">หมวดหมู่</th>
+                                    <th class="px-4 py-3 text-left">ผู้จำหน่าย</th>
+                                    <th class="px-4 py-3 text-right text-rose-700 font-bold">สต็อกปลายวัน</th>
+                                    <th class="px-4 py-3 text-right">จุดสั่งซื้อขั้นต่ำ</th>
+                                    <th class="px-4 py-3 text-right">มูลค่าคงเหลือ (บาท)</th>
+                                    <th class="px-4 py-3 text-center">สถานะที่บันทึก</th>
+                                    <th class="px-4 py-3 text-left">เหตุผลความเร่งด่วน & ข้อเสนอแนะ</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 text-slate-700" id="urgent-tbody">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Risk Audit & Observation Note -->
+                <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 space-y-2 text-xs sm:text-sm">
+                    <span class="font-bold text-slate-900">ข้อสังเกตความไม่สอดคล้องของสถานะสต็อก (Recorded Status vs Reality):</span>
+                    <p class="text-slate-600 text-xs leading-relaxed">
+                        จากการตรวจสอบพบว่ามีหลายรายการที่สต็อกปลายวันต่ำกว่าจุดสั่งซื้อขั้นต่ำมาก แต่กลับบันทึกสถานะเป็น <b>"ใกล้หมด"</b> แทนที่จะเป็น <b>"ต้องสั่งซื้อ"</b> เช่น <i>STK00837 (แบตเตอรี่สำรอง สาขาตลาด) สต็อกปลายวันเหลือ 6 หน่วย แต่จุดสั่งซื้อขั้นต่ำคือ 12 หน่วย และอัตราส่วนคงเหลือเพียง 50%</i> ซึ่งความคลาดเคลื่อนนี้ทำให้ระบบจัดซื้ออาจสั่งสินค้าไม่ทันเวลา จึงจำเป็นต้องใช้เงื่อนไขตรวจสอบแบบกึ่งอัตโนมัติ <code>IF(สต็อก &lt; จุดสั่งซื้อ, "ต้องสั่งซื้อ", ...)</code> ในการส่งเตือนฝ่ายจัดซื้อ
+                    </p>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 6: TIME TREND & SEASONALITY            -->
+        <!-- ========================================== -->
+        <section id="tab-trends" class="tab-content hidden space-y-6">
+            
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Mission 05 Deliverable • 15 คะแนน</span>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">การวิเคราะห์แนวโน้มตามเวลา & ฤดูกาล (Time Trend & Seasonality Analysis)</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        สรุปยอดขาย กำไรขั้นต้น และอัตรากำไรรายเดือนตลอด 22 เดือน พร้อมระบุข้อสังเกตและข้อจำกัดของข้อมูล
+                    </p>
+                </div>
+
+                <!-- High / Low Highlight Cards -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-200">
+                        <span class="text-xs font-bold text-emerald-800 uppercase">เดือนยอดขายสูงสุด (All-Time Peak)</span>
+                        <div class="text-xl sm:text-2xl font-extrabold text-emerald-950 mt-1">มีนาคม 2025 (2025-03)</div>
+                        <div class="text-xs text-emerald-700 mt-1">ยอดขาย <b>฿10,302.00</b> | กำไร ฿3,901.90 (361 ชิ้น)</div>
+                        <p class="text-[11px] text-emerald-600 mt-1.5">ปัจจัยบวก: การซื้อสินค้าต้อนรับเปิดเทอม และกลุ่มอุปกรณ์อิเล็กทรอนิกส์ขายดีเป็นพิเศษ</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-amber-50 border border-amber-200">
+                        <span class="text-xs font-bold text-amber-800 uppercase">เดือนยอดขายต่ำสุดรอบเต็มเดือน (Lowest Month)</span>
+                        <div class="text-xl sm:text-2xl font-extrabold text-amber-950 mt-1">สิงหาคม 2025 (2025-08)</div>
+                        <div class="text-xs text-amber-700 mt-1">ยอดขาย <b>฿3,635.00</b> | กำไร ฿1,610.20 (236 ชิ้น)</div>
+                        <p class="text-[11px] text-amber-600 mt-1.5">ปัจจัยกดดัน: ช่วงกลางฤดูฝน กิจกรรมการซื้อหน้าร้านลดลง และมีวันบันทึกเพียง 37 แถว</p>
+                    </div>
+                    <div class="p-4 rounded-xl bg-rose-50 border border-rose-200">
+                        <span class="text-xs font-bold text-rose-800 uppercase">ข้อจำกัดข้อมูลสำคัญ (Data Limitation)</span>
+                        <div class="text-xl sm:text-2xl font-extrabold text-rose-950 mt-1">ตุลาคม 2026 (2026-10)</div>
+                        <div class="text-xs text-rose-700 mt-1">มีข้อมูลบันทึกเพียง <b>2 วัน</b> (1 - 2 ต.ค. 2026)</div>
+                        <p class="text-[11px] text-rose-600 mt-1.5">มีเพียง 4 แถว ยอดขาย ฿772 ห้ามนำไปเปรียบเทียบตรงๆ กับเดือนเต็มอื่น</p>
+                    </div>
+                </div>
+
+                <!-- Monthly Table -->
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 mb-3">ตารางสรุปผลการดำเนินงานรายเดือน (22 เดือน)</h3>
+                    <div class="overflow-x-auto border border-slate-200 rounded-xl max-h-96">
+                        <table class="min-w-full divide-y divide-slate-200 text-xs sm:text-sm">
+                            <thead class="bg-slate-50 sticky top-0 text-slate-700 font-semibold">
+                                <tr>
+                                    <th class="px-4 py-2.5 text-left">เดือน (YYYY-MM)</th>
+                                    <th class="px-4 py-2.5 text-center">จำนวนแถว</th>
+                                    <th class="px-4 py-2.5 text-right">ยอดขาย (บาท)</th>
+                                    <th class="px-4 py-2.5 text-right">กำไรขั้นต้น (บาท)</th>
+                                    <th class="px-4 py-2.5 text-right font-bold text-indigo-700">GP Margin (%)</th>
+                                    <th class="px-4 py-2.5 text-right">ปริมาณขาย (หน่วย)</th>
+                                    <th class="px-4 py-2.5 text-left">สถานะ & ข้อสังเกต</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-slate-200 text-slate-700" id="monthly-tbody">
+                                <!-- Injected via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 7: BUSINESS INSIGHTS & ACTION PLAN     -->
+        <!-- ========================================== -->
+        <section id="tab-insights" class="tab-content hidden space-y-6">
+            
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-6">
+                <div>
+                    <span class="text-xs font-bold text-sky-600 uppercase tracking-wider">Mission 06 Deliverable • 10 คะแนน</span>
+                    <h2 class="text-xl sm:text-2xl font-extrabold text-slate-900 mt-1">สรุปเชิงธุรกิจ ข้อเสนอแนะเชิงกลยุทธ์ & คำตอบสำหรับคำถามท้าทาย</h2>
+                    <p class="text-sm text-slate-600 mt-1">
+                        บทวิเคราะห์สำหรับผู้บริหารระดับสูง อิงหลักฐานเชิงประจักษ์ (Data-driven Insights) พร้อมแผนปฏิบัติการที่ทำได้จริง
+                    </p>
+                </div>
+
+                <!-- 3 Key Findings -->
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 mb-3 flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-md bg-indigo-600 text-white flex items-center justify-center text-xs">1</span>
+                        <span>3 ข้อค้นพบสำคัญ (Key Business Findings)</span>
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs sm:text-sm">
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                            <div class="font-bold text-slate-900 flex items-center space-x-2">
+                                <span class="text-sky-600 text-base">📌</span>
+                                <span>1. สต็อกกระจายตัวไม่สมดุลอย่างรุนแรง (Inventory Mismatch)</span>
+                            </div>
+                            <p class="text-slate-600 text-xs leading-relaxed">
+                                <b>สาขาตลาด</b> สร้างยอดขายสูงสุดที่ ฿48,658 แต่สต็อกคงเหลือกลับต่ำสุดเพียง ฿12,145.70 จนสินค้าสำคัญหมดสต็อก (0 หน่วย) ในขณะที่ <b>สาขาชุมชน</b> มีสต็อกกองสะสมสูงถึง ฿31,974.10 (เกือบครึ่งหนึ่งของระบบ) แต่ยอดขายกลับไม่ได้เติบโตสะท้อนมูลค่าสต็อกที่จมอยู่
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                            <div class="font-bold text-slate-900 flex items-center space-x-2">
+                                <span class="text-emerald-600 text-base">📌</span>
+                                <span>2. หมวดอุปกรณ์อิเล็กทรอนิกส์และเครื่องเขียนคือขุมทรัพย์</span>
+                            </div>
+                            <p class="text-slate-600 text-xs leading-relaxed">
+                                หมวดอุปกรณ์อิเล็กทรอนิกส์ทำกำไรสูงสุด ฿14,024 และยอดขาย ฿38,213 จากสินค้าเพียง 3 รหัส (สายชาร์จ, ถ่าน AA, แบตสำรอง) ในขณะที่หมวดเครื่องเขียนมีอัตรากำไรขั้นต้น (GP Margin) สูงถึง <b>60.58%</b> ซึ่งเป็นสินค้า margin champion ตัวจริง
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+                            <div class="font-bold text-slate-900 flex items-center space-x-2">
+                                <span class="text-rose-600 text-base">📌</span>
+                                <span>3. อัตราการชำรุดเสียหายสูงถึง 11.37% (Shrinkage Rate)</span>
+                            </div>
+                            <p class="text-slate-600 text-xs leading-relaxed">
+                                สินค้าเสียหายรวม 771 หน่วย คิดเป็น 11.37% ของปริมาณขาย โดยเฉพาะกลุ่มของใช้ในบ้าน (163 หน่วย) และของใช้ส่วนตัว (123 หน่วย) ส่งผลให้กำไรสุทธิรั่วไหลจากการเก็บรักษา การเคลื่อนย้าย และความผิดพลาดในการลงบันทึกสต็อก 67 แถว
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 3 Actionable Recommendations -->
+                <div>
+                    <h3 class="text-base font-bold text-slate-900 mb-3 flex items-center space-x-2">
+                        <span class="w-6 h-6 rounded-md bg-indigo-600 text-white flex items-center justify-center text-xs">2</span>
+                        <span>3 ข้อเสนอแนะที่นำไปปฏิบัติได้จริง (เรียงตามลำดับความสำคัญ)</span>
+                    </h3>
+                    <div class="space-y-3 text-xs sm:text-sm">
+                        <div class="p-4 rounded-xl border border-rose-200 bg-rose-50/40 flex items-start space-x-3">
+                            <span class="px-2.5 py-1 bg-rose-600 text-white font-bold rounded text-xs flex-shrink-0">Priority 1 (ด่วนที่สุด)</span>
+                            <div class="space-y-1">
+                                <h4 class="font-bold text-slate-900">แก้ปัญหา Stockout และตั้ง Safety Stock สำหรับสาขาตลาด</h4>
+                                <p class="text-slate-600 text-xs leading-relaxed">
+                                    ออกใบสั่งซื้อทันทีสำหรับสินค้า 0 หน่วย (สายชาร์จ USB, ขนมปังกรอบ) และสินค้าที่ต่ำกว่า 10% ของจุดสั่งซื้อ (สมุดโน้ต, แบตสำรอง) พร้อมปรับเพิ่มจุด Reorder Point ของสาขาตลาดขึ้น 25-30% และทำระบบโอนสต็อก (Inter-branch Stock Transfer) ดึงของจากสาขาชุมชนที่สต็อกจมมาหนุนสาขาตลาดทันที
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl border border-amber-200 bg-amber-50/40 flex items-start space-x-3">
+                            <span class="px-2.5 py-1 bg-amber-600 text-white font-bold rounded text-xs flex-shrink-0">Priority 2 (ระยะกลาง)</span>
+                            <div class="space-y-1">
+                                <h4 class="font-bold text-slate-900">ปรับปรุงระบบบันทึกสต็อกอัตโนมัติและแก้ปัญหา 67 แถวผิดพลาด</h4>
+                                <p class="text-slate-600 text-xs leading-relaxed">
+                                    อัปเกรดแบบฟอร์มบันทึกสต็อกหน้าร้าน ให้คำนวณ `สต็อกปลายวัน` แบบอัตโนมัติโดยล็อกไม่ให้พนักงานพิมพ์เอง (ป้องกัน Typo เช่น 91 กลายเป็น 6) พร้อมติดตั้งเงื่อนไขล็อกระบบไม่ให้กดยืนยันการขายกรณีสต็อกไม่เพียงพอ เพื่อยุติปัญหาสต็อกติดลบ
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="p-4 rounded-xl border border-emerald-200 bg-emerald-50/40 flex items-start space-x-3">
+                            <span class="px-2.5 py-1 bg-emerald-600 text-white font-bold rounded text-xs flex-shrink-0">Priority 3 (ระยะยาว)</span>
+                            <div class="space-y-1">
+                                <h4 class="font-bold text-slate-900">กลยุทธ์จัดเซ็ตโปรโมชัน (Product Bundling) ขยายหมวด Margin สูง</h4>
+                                <p class="text-slate-600 text-xs leading-relaxed">
+                                    ใช้กลยุทธ์ Bundle สินค้า เช่น จัดเซ็ต "สมุดโน้ต + ปากกาลูกลื่น" (หมวดเครื่องเขียน GP 60.58%) พ่วงขายกับหมวดอาหาร/เครื่องดื่มในสาขาวิทยาลัย เพื่อกระตุ้น Basket Size และดันอัตรากำไรขั้นต้นรวมให้แตะ 43%
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Challenging Question Box -->
+                <div class="bg-gradient-to-r from-slate-900 to-indigo-950 p-6 rounded-2xl text-white shadow-xl space-y-3 border border-indigo-800">
+                    <div class="flex items-center space-x-2">
+                        <span class="px-3 py-1 rounded-full text-xs font-bold bg-amber-400 text-slate-950 uppercase tracking-wider">คำถามท้าทาย (Challenging Question)</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white">
+                        "หากมีงบประมาณและเวลาในการแก้ปัญหาได้เพียง 1 เรื่องในเดือนถัดไป คุณจะเลือกแก้ปัญหาใดก่อน เพราะเหตุใด?"
+                    </h3>
+                    <div class="bg-slate-800/80 p-4 rounded-xl border border-slate-700 text-xs sm:text-sm text-slate-200 leading-relaxed space-y-2">
+                        <p class="font-bold text-sky-400">
+                            คำตอบที่เชื่อมโยงกับหลักฐานเชิงประจักษ์จากข้อมูล:
+                        </p>
+                        <p>
+                            <b>ผมจะเลือกแก้ปัญหา "การขาดสต็อก (Stockout) ของสินค้ากลุ่ม High-Profit & High-Velocity ในสาขาตลาด" เป็นอันดับแรกสุด</b>
+                        </p>
+                        <p class="text-xs text-slate-300">
+                            <b>เหตุผลสนับสนุนจากตัวเลขข้อมูลจริง (Data Evidence):</b>
+                        </p>
+                        <ul class="list-disc list-inside text-xs text-slate-300 space-y-1 pl-1">
+                            <li><b>มูลค่าความสูญเสียสูงและเร่งด่วน:</b> ในสาขาตลาด สินค้าที่กำไรต่อหน่วยสูงสุดอย่าง <b>P014 (สายชาร์จ USB ราคา 89 บาท กำไร 41 บาท/ชิ้น) สต็อกเหลือ 0 หน่วย</b> และ <b>P020 (แบตเตอรี่สำรอง ราคา 399 บาท กำไร 124 บาท/ชิ้น) สต็อกเหลือเพียง 6 หน่วย</b> (จากจุดสั่งซื้อ 12)</li>
+                            <li><b>สาขาตลาดคือหัวใจของยอดขาย:</b> สาขาตลาดครองสัดส่วนยอดขายอันดับ 1 ของบริษัท (฿48,658 หรือ 34.18%) แต่กลับมีสต็อกเหลือเพียง ฿12,145.70 หากไม่รีบเติมสินค้ากลุ่มนี้ บริษัทจะสูญเสียกำไรเฉลี่ยไม่ต่ำกว่า <b>฿3,000 - ฿5,000 ต่อเดือน</b> ทันที</li>
+                            <li><b>ใช้งบน้อยและเห็นผลไวสุดใน 30 วัน (Quick Win):</b> สามารถแก้ได้ทันทีโดยการ <b>"โอนย้ายสต็อกส่วนเกินจากสาขาชุมชน (ซึ่งมีสต็อกจมอยู่ถึง ฿31,974.10) มายังสาขาตลาด"</b> วิธีนี้ไม่ต้องใช้งบสั่งซื้อใหม่จำนวนมาก แต่ปลดล็อกยอดขายและกระแสเงินสดได้ทันทีใน 30 วัน!</li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+        <!-- ========================================== -->
+        <!-- TAB 8: RAW DATA EXPLORER & ADVANCED FILTER -->
+        <!-- ========================================== -->
+        <section id="tab-rawdata" class="tab-content hidden space-y-4">
+            
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+                
+                <!-- Section Header -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-200 gap-3">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <h2 class="text-lg font-bold text-slate-900">ตารางสืบค้นและคัดกรองข้อมูลละเอียด (Advanced Data Explorer)</h2>
+                            <span class="px-2 py-0.5 text-[11px] bg-sky-100 text-sky-800 font-semibold rounded-full border border-sky-200">1,000 แถว / 20 คอลัมน์</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mt-0.5">ระบบตัวกรองเชิงลึก 8 มิติ พร้อมตัวนับสถิติสรุปแบบ Real-time และปุ่มส่งออก CSV</p>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="exportFilteredCSV()" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-semibold flex items-center space-x-1.5 shadow-sm transition">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                            <span>ส่งออก CSV ที่กรอง</span>
+                        </button>
+                        <button onclick="resetAllFilters()" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-medium border border-slate-300 transition">
+                            ล้างตัวกรองทั้งหมด 🔄
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 1-Click Quick Preset Filters Bar -->
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">⚡ ตัวกรองด่วนยอดนิยม (Quick Presets 1-Click):</label>
+                    <div class="flex flex-wrap gap-1.5 text-xs">
+                        <button onclick="applyPreset('all')" class="filter-chip px-3 py-1.5 rounded-lg border border-slate-300 bg-white hover:bg-slate-50 text-slate-700 active" data-preset="all">
+                            📊 ทั้งหมด (1,000)
+                        </button>
+                        <button onclick="applyPreset('stockout')" class="filter-chip px-3 py-1.5 rounded-lg border border-rose-300 bg-rose-50/60 hover:bg-rose-100 text-rose-800" data-preset="stockout">
+                            🚨 สต็อกหมด (0 หน่วย) [21]
+                        </button>
+                        <button onclick="applyPreset('reorder')" class="filter-chip px-3 py-1.5 rounded-lg border border-rose-300 bg-rose-50/60 hover:bg-rose-100 text-rose-800" data-preset="reorder">
+                            ⚠️ ต้องสั่งซื้อ (&lt; จุดสั่งซื้อ) [502]
+                        </button>
+                        <button onclick="applyPreset('anomaly')" class="filter-chip px-3 py-1.5 rounded-lg border border-amber-300 bg-amber-50/60 hover:bg-amber-100 text-amber-800" data-preset="anomaly">
+                            🔍 ข้อมูลผิดปกติ 67 แถว [67]
+                        </button>
+                        <button onclick="applyPreset('damaged')" class="filter-chip px-3 py-1.5 rounded-lg border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-800" data-preset="damaged">
+                            💥 สินค้าเสียหาย (&gt; 0) [385]
+                        </button>
+                        <button onclick="applyPreset('stationery')" class="filter-chip px-3 py-1.5 rounded-lg border border-indigo-300 bg-indigo-50/60 hover:bg-indigo-100 text-indigo-800" data-preset="stationery">
+                            💎 เครื่องเขียน (GP 60.6%) [106]
+                        </button>
+                        <button onclick="applyPreset('market')" class="filter-chip px-3 py-1.5 rounded-lg border border-sky-300 bg-sky-50/60 hover:bg-sky-100 text-sky-800" data-preset="market">
+                            🏬 สาขาตลาด [350]
+                        </button>
+                        <button onclick="applyPreset('community')" class="filter-chip px-3 py-1.5 rounded-lg border border-slate-300 bg-slate-100 hover:bg-slate-200 text-slate-700" data-preset="community">
+                            🏘️ สาขาชุมชน [324]
+                        </button>
+                        <button onclick="applyPreset('college')" class="filter-chip px-3 py-1.5 rounded-lg border border-emerald-300 bg-emerald-50/60 hover:bg-emerald-100 text-emerald-800" data-preset="college">
+                            🎓 สาขาวิทยาลัย [326]
+                        </button>
+                    </div>
+                </div>
+
+                <!-- 8 Detailed Multi-Criteria Filters Console -->
+                <div class="bg-slate-50/80 p-4 rounded-xl border border-slate-200 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center space-x-1.5">
+                            <svg class="w-4 h-4 text-sky-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                            <span>แผงควบคุมตัวกรองละเอียด (Multi-Criteria Filters)</span>
+                        </span>
+                        <span class="text-[11px] text-slate-500">เลือกเงื่อนไขร่วมกันได้ทุกมิติ</span>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
+                        
+                        <!-- 1. ค้นหาคำสำคัญ -->
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                <span>1. ค้นหาคำสำคัญ:</span>
+                                <span class="text-[10px] text-slate-400 font-normal">รหัส/ชื่อ/ผู้บันทึก</span>
+                            </label>
+                            <div class="relative">
+                                <input type="text" id="searchInput" placeholder="พิมพ์ค้นหา เช่น P014, สายชาร์จ..." class="w-full pl-8 pr-3 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs bg-white">
+                                <svg class="w-4 h-4 text-slate-400 absolute left-2.5 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            </div>
+                        </div>
+
+                        <!-- 2. สาขาร้านค้า -->
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                <span>2. สาขาร้านค้า (Branch):</span>
+                                <span class="text-[10px] text-slate-400 font-normal">3 สาขา</span>
+                            </label>
+                            <select id="branchFilter" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs bg-white">
+                                <option value="">ทั้งหมด (3 สาขา 1,000 แถว)</option>
+                                <option value="สาขาตลาด">สาขาตลาด (350 แถว • ยอดขาย ฿48,658)</option>
+                                <option value="สาขาชุมชน">สาขาชุมชน (324 แถว • ยอดขาย ฿47,565)</option>
+                                <option value="สาขาวิทยาลัย">สาขาวิทยาลัย (326 แถว • GP 41.53%)</option>
+                            </select>
+                        </div>
+
+                        <!-- 3. หมวดหมู่สินค้า -->
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                <span>3. หมวดหมู่สินค้า (Category):</span>
+                                <span class="text-[10px] text-slate-400 font-normal">7 หมวดหมู่</span>
+                            </label>
+                            <select id="categoryFilter" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs bg-white">
+                                <option value="">ทั้งหมด (7 หมวดหมู่)</option>
+                                <option value="อุปกรณ์อิเล็กทรอนิกส์">อุปกรณ์อิเล็กทรอนิกส์ (147 แถว • ยอดขาย ฿38.2k)</option>
+                                <option value="ของใช้ในบ้าน">ของใช้ในบ้าน (206 แถว • ยอดขาย ฿30.8k)</option>
+                                <option value="ของใช้ส่วนตัว">ของใช้ส่วนตัว (149 แถว • ยอดขาย ฿18.6k)</option>
+                                <option value="ขนม">ขนม (160 แถว • ยอดขาย ฿17.0k)</option>
+                                <option value="เครื่องดื่ม">เครื่องดื่ม (133 แถว • ยอดขาย ฿14.2k)</option>
+                                <option value="เครื่องเขียน">เครื่องเขียน (106 แถว • GP 60.58% สูงสุด)</option>
+                                <option value="อาหารและของกิน">อาหารและของกิน (99 แถว • ยอดขาย ฿11.1k)</option>
+                            </select>
+                        </div>
+
+                        <!-- 4. สถานะสต็อก -->
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                <span>4. สถานะสต็อก (Stock Status):</span>
+                                <span class="text-[10px] text-slate-400 font-normal">3 สถานะ</span>
+                            </label>
+                            <select id="statusFilter" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs bg-white">
+                                <option value="">ทั้งหมด (ทุกสถานะ)</option>
+                                <option value="ต้องสั่งซื้อ">ต้องสั่งซื้อ (502 แถว • สต็อกต่ำกว่าเกณฑ์)</option>
+                                <option value="ใกล้หมด">ใกล้หมด (230 แถว • อยู่ในระดับเฝ้าระวัง)</option>
+                                <option value="ปกติ">ปกติ (268 แถว • ระดับสต็อกเพียงพอ)</option>
+                            </select>
+                        </div>
+
+                        <!-- 5. ผู้จัดจำหน่าย -->
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                <span>5. ผู้จัดจำหน่าย (Supplier):</span>
+                                <span class="text-[10px] text-slate-400 font-normal">4 ราย</span>
+                            </label>
+                            <select id="supplierFilter" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs bg-white">
+                                <option value="">ทั้งหมด (4 ผู้จำหน่าย)</option>
+                                <option value="ร้านค้าส่ง ดี">ร้านค้าส่ง ดี (260 แถว • ยอดขาย ฿36.5k)</option>
+                                <option value="หจก. บี ซัพพลาย">หจก. บี ซัพพลาย (255 แถว • ยอดขาย ฿40.4k)</option>
+                                <option value="บริษัท ซี เทรด">บริษัท ซี เทรด (251 แถว • ยอดขาย ฿33.0k)</option>
+                                <option value="บริษัท เอ จำกัด">บริษัท เอ จำกัด (234 แถว • ยอดขาย ฿32.3k)</option>
+                            </select>
+                        </div>
+
+                        <!-- 6. พนักงานผู้บันทึก -->
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                <span>6. พนักงานบันทึก (Staff):</span>
+                                <span class="text-[10px] text-slate-400 font-normal">6 ราย</span>
+                            </label>
+                            <select id="staffFilter" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs bg-white">
+                                <option value="">ทั้งหมด (พนักงานทุกคน)</option>
+                                <option value="พนักงาน 05">พนักงาน 05 (183 แถว • ผิดพลาด 11)</option>
+                                <option value="พนักงาน 06">พนักงาน 06 (169 แถว • ผิดพลาด 11)</option>
+                                <option value="พนักงาน 03">พนักงาน 03 (166 แถว • ผิดพลาด 11)</option>
+                                <option value="พนักงาน 02">พนักงาน 02 (165 แถว • ผิดพลาดสูงสุด 15)</option>
+                                <option value="พนักงาน 04">พนักงาน 04 (163 แถว • ผิดพลาดน้อยสุด 7)</option>
+                                <option value="พนักงาน 01">พนักงาน 01 (154 แถว • ผิดพลาด 12)</option>
+                            </select>
+                        </div>
+
+                        <!-- 7. ช่วงเวลาบันทึก -->
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                <span>7. ช่วงเวลา (Year / Month):</span>
+                                <span class="text-[10px] text-slate-400 font-normal">22 เดือน</span>
+                            </label>
+                            <select id="periodFilter" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs bg-white">
+                                <option value="">ตลอดช่วงเวลา (2025 - 2026)</option>
+                                <optgroup label="แยกรายปี">
+                                    <option value="2025">ปี 2025 (577 แถว • 12 เดือนเต็ม)</option>
+                                    <option value="2026">ปี 2026 (423 แถว • 10 เดือน)</option>
+                                </optgroup>
+                                <optgroup label="เจาะจงเดือนสำคัญ">
+                                    <option value="2025-03">มีนาคม 2025 (53 แถว • เดือนสูงสุด ฿10,302)</option>
+                                    <option value="2025-08">สิงหาคม 2025 (37 แถว • เดือนต่ำสุด ฿3,635)</option>
+                                    <option value="2026-10">ตุลาคม 2026 (4 แถว • ข้อมูลมีแค่ 2 วัน)</option>
+                                </optgroup>
+                            </select>
+                        </div>
+
+                        <!-- 8. เงื่อนไขพิเศษทางสต็อก -->
+                        <div>
+                            <label class="block font-semibold text-slate-700 mb-1 flex items-center justify-between">
+                                <span>8. เงื่อนไขสต็อกพิเศษ (Special):</span>
+                                <span class="text-[10px] text-slate-400 font-normal">ตรรกะพิเศษ</span>
+                            </label>
+                            <select id="specialFilter" class="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-sky-500 text-xs bg-white">
+                                <option value="">ทั้งหมด (ไม่มีเงื่อนไขพิเศษ)</option>
+                                <option value="zero_stock">🚨 สต็อกปลายวัน = 0 (สินค้าหมดชั้นวาง) [21]</option>
+                                <option value="below_min">⚠️ สต็อก &lt; จุดสั่งซื้อขั้นต่ำ [502]</option>
+                                <option value="anomaly">🔍 ข้อมูลสต็อกผิดปกติ (Audit 67 แถว) [67]</option>
+                                <option value="has_damaged">💥 มีสินค้าเสียหาย (&gt; 0 หน่วย) [385]</option>
+                                <option value="has_sold">🛒 มีการขายออก (&gt; 0 หน่วย) [958]</option>
+                            </select>
+                        </div>
+
+                    </div>
+
+                    <!-- Active Filter Chips Tag Bar -->
+                    <div id="active-filter-tags-container" class="pt-2 border-t border-slate-200 flex flex-wrap items-center gap-1.5 text-xs text-slate-600">
+                        <span class="font-medium text-slate-500 text-[11px]">เงื่อนไขที่เลือก:</span>
+                        <div id="active-filter-tags" class="flex flex-wrap gap-1.5 items-center">
+                            <span class="text-slate-400 italic text-[11px]">ยังไม่มีตัวกรองเพิ่มเติม (แสดงทั้งหมด 1,000 รายการ)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-Time Filter Statistics Bar -->
+                <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 p-3.5 bg-gradient-to-r from-sky-50 via-indigo-50 to-slate-50 rounded-xl border border-sky-200/80 text-xs">
+                    <div class="space-y-0.5">
+                        <span class="text-slate-500 text-[11px] block">รายการที่พบ (Filtered Rows):</span>
+                        <div class="text-lg font-extrabold text-slate-900" id="stat-filtered-rows">1,000 แถว</div>
+                        <span class="text-[10px] text-slate-500" id="stat-filtered-pct">(100.0% ของข้อมูล)</span>
+                    </div>
+                    <div class="space-y-0.5">
+                        <span class="text-slate-500 text-[11px] block">ยอดขายรวมตามตัวกรอง:</span>
+                        <div class="text-lg font-extrabold text-sky-800" id="stat-filtered-sales">฿142,350.00</div>
+                        <span class="text-[10px] text-slate-500">ยอดสะสมของแถวที่เลือก</span>
+                    </div>
+                    <div class="space-y-0.5">
+                        <span class="text-slate-500 text-[11px] block">กำไรขั้นต้นตามตัวกรอง:</span>
+                        <div class="text-lg font-extrabold text-emerald-700" id="stat-filtered-profit">฿58,738.60</div>
+                        <span class="text-[10px] text-slate-500">กำไรสะสม</span>
+                    </div>
+                    <div class="space-y-0.5">
+                        <span class="text-slate-500 text-[11px] block">GP Margin เฉลี่ย:</span>
+                        <div class="text-lg font-extrabold text-indigo-700" id="stat-filtered-margin">41.26%</div>
+                        <span class="text-[10px] text-slate-500">(กำไร ÷ ยอดขาย) × 100</span>
+                    </div>
+                    <div class="space-y-0.5">
+                        <span class="text-slate-500 text-[11px] block">สินค้าเสียหายรวม:</span>
+                        <div class="text-lg font-extrabold text-rose-600" id="stat-filtered-damaged">771 หน่วย</div>
+                        <span class="text-[10px] text-slate-500" id="stat-filtered-dmg-rate">~11.37% ของยอดขาย</span>
+                    </div>
+                </div>
+
+                <!-- Table Controls (Page size & Count) -->
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between text-xs text-slate-600 pt-1 gap-2">
+                    <div class="flex items-center space-x-2">
+                        <span>แสดงแถวต่อหน้า:</span>
+                        <select id="pageSizeSelect" onchange="changePageSize(this.value)" class="px-2.5 py-1 rounded-md border border-slate-300 bg-white text-xs">
+                            <option value="25">25 แถว</option>
+                            <option value="50" selected>50 แถว</option>
+                            <option value="100">100 แถว</option>
+                            <option value="200">200 แถว</option>
+                            <option value="1000">ทั้งหมด (1,000 แถว)</option>
+                        </select>
+                        <span class="text-slate-400">|</span>
+                        <span id="filter-count">แสดง 1,000 รายการ</span>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span id="page-info">หน้า 1 จาก 20</span>
+                        <div class="flex space-x-1">
+                            <button onclick="changePage(-1)" class="px-3 py-1 border border-slate-300 rounded-md bg-white hover:bg-slate-100 font-medium text-xs">ก่อนหน้า</button>
+                            <button onclick="changePage(1)" class="px-3 py-1 border border-slate-300 rounded-md bg-white hover:bg-slate-100 font-medium text-xs">ถัดไป</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Table Container -->
+                <div class="overflow-x-auto border border-slate-200 rounded-xl max-h-[550px] shadow-sm">
+                    <table class="min-w-full divide-y divide-slate-200 text-xs">
+                        <thead class="bg-slate-50 sticky top-0 text-slate-700 font-semibold z-10">
+                            <tr>
+                                <th class="px-3 py-2 text-left">รหัส</th>
+                                <th class="px-3 py-2 text-left">วันที่</th>
+                                <th class="px-3 py-2 text-left">สาขา</th>
+                                <th class="px-3 py-2 text-left">สินค้า</th>
+                                <th class="px-3 py-2 text-left">หมวดหมู่</th>
+                                <th class="px-3 py-2 text-right">ต้นวัน</th>
+                                <th class="px-3 py-2 text-right">รับ</th>
+                                <th class="px-3 py-2 text-right">ขาย</th>
+                                <th class="px-3 py-2 text-right">เสีย</th>
+                                <th class="px-3 py-2 text-right font-bold text-slate-900">ปลายวัน</th>
+                                <th class="px-3 py-2 text-right">จุดสั่ง</th>
+                                <th class="px-3 py-2 text-right">ราคา</th>
+                                <th class="px-3 py-2 text-right">ทุน</th>
+                                <th class="px-3 py-2 text-right font-semibold text-sky-700">ยอดขาย</th>
+                                <th class="px-3 py-2 text-right font-semibold text-emerald-700">กำไร</th>
+                                <th class="px-3 py-2 text-center">สถานะ</th>
+                                <th class="px-3 py-2 text-left">ผู้บันทึก</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rawdata-tbody" class="divide-y divide-slate-200 text-slate-600">
+                            <!-- Injected via JS -->
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-slate-900 text-slate-400 py-6 text-xs text-center border-t border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 space-y-1">
+            <p>DATA ANALYTICS • PRACTICE COMPETITION — โจทย์ฝึกปฏิบัติการวิเคราะห์ข้อมูลร้านค้าปลีก (3 สาขา 1,000 แถว)</p>
+            <p class="text-slate-500">พัฒนาและออกแบบระบบแดชบอร์ดโดย Google DeepMind Advanced Agentic Coding Assistant</p>
+        </div>
+    </footer>
+
+    <!-- Application Script -->
+    <script>
+        // Check if data is loaded
+        const data = window.dashboardData || {};
+        const tableRows = window.tableData || [];
+
+        // Tab Switching
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            const target = document.getElementById('tab-' + tabId);
+            if (target) target.classList.remove('hidden');
+
+            const btn = document.querySelector(`.tab-btn[data-tab="${tabId}"]`);
+            if (btn) btn.classList.add('active');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Initialize Anomaly Table with Filter
+        let filteredAnomalies = data.anomalies ? [...data.anomalies] : [];
+
+        function filterAnomalyTable() {
+            const type = document.getElementById('anomalyTypeFilter')?.value || '';
+            const branch = document.getElementById('anomalyBranchFilter')?.value || '';
+            const staff = document.getElementById('anomalyStaffFilter')?.value || '';
+
+            filteredAnomalies = (data.anomalies || []).filter(item => {
+                if (branch && item.branch !== branch) return false;
+                if (staff && item.staff !== staff) return false;
+                if (type === 'stockout_clip' && !(item.endCalc < 0 && item.endActual === 0)) return false;
+                if (type === 'typo' && (item.endCalc < 0 && item.endActual === 0)) return false;
+                return true;
+            });
+
+            const countEl = document.getElementById('anomaly-filter-count');
+            if (countEl) countEl.innerText = `แสดง ${filteredAnomalies.length} / ${(data.anomalies || []).length} แถว`;
+
+            renderAnomalies();
+        }
+
+        function renderAnomalies() {
+            const tbody = document.getElementById('anomaly-tbody');
+            if (!tbody) return;
+
+            if (filteredAnomalies.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="12" class="px-4 py-8 text-center text-slate-400 italic">ไม่พบรายการผิดปกติที่ตรงกับเงื่อนไขตัวกรอง</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filteredAnomalies.map(item => `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-3 py-1.5 font-mono text-slate-800 font-bold">${item.id}</td>
+                    <td class="px-3 py-1.5 text-slate-600 whitespace-nowrap">${item.date}</td>
+                    <td class="px-3 py-1.5 font-medium text-slate-700">${item.branch}</td>
+                    <td class="px-3 py-1.5 text-slate-800">${item.name} (${item.code})</td>
+                    <td class="px-3 py-1.5 text-right">${item.start}</td>
+                    <td class="px-3 py-1.5 text-right text-emerald-600">+${item.in}</td>
+                    <td class="px-3 py-1.5 text-right text-sky-600">-${item.out}</td>
+                    <td class="px-3 py-1.5 text-right text-rose-600">-${item.dmg}</td>
+                    <td class="px-3 py-1.5 text-right font-bold text-rose-600">${item.endActual}</td>
+                    <td class="px-3 py-1.5 text-right font-bold text-sky-700">${item.endCalc}</td>
+                    <td class="px-3 py-1.5 text-right font-bold ${item.diff < 0 ? 'text-amber-600' : 'text-rose-600'}">${item.diff > 0 ? '+' : ''}${item.diff}</td>
+                    <td class="px-3 py-1.5 text-slate-500 whitespace-nowrap">${item.staff}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Initialize Category Table
+        function renderCategories() {
+            const tbody = document.getElementById('category-tbody');
+            if (!tbody || !data.categories) return;
+
+            const sorted = [...data.categories].sort((a,b) => b.sales - a.sales);
+            tbody.innerHTML = sorted.map((cat, idx) => `
+                <tr class="hover:bg-slate-50">
+                    <td class="px-3 py-2 text-center font-bold text-slate-500">${idx + 1}</td>
+                    <td class="px-4 py-2 font-bold text-slate-800">${cat.category}</td>
+                    <td class="px-4 py-2 text-right font-semibold text-slate-900">฿${cat.sales.toLocaleString('th-TH', {minimumFractionDigits: 2})}</td>
+                    <td class="px-4 py-2 text-right text-slate-500">${((cat.sales / data.overview.totalSales) * 100).toFixed(2)}%</td>
+                    <td class="px-4 py-2 text-right font-semibold text-emerald-600">฿${cat.profit.toLocaleString('th-TH', {minimumFractionDigits: 2})}</td>
+                    <td class="px-4 py-2 text-right font-bold ${cat.margin > 50 ? 'text-emerald-700' : 'text-indigo-600'}">${cat.margin.toFixed(2)}%</td>
+                    <td class="px-4 py-2 text-right">${cat.qty.toLocaleString()}</td>
+                    <td class="px-4 py-2 text-right text-rose-600">${cat.damaged.toLocaleString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Initialize Urgent Items with Filter
+        let filteredUrgentItems = data.urgentItems ? [...data.urgentItems] : [];
+
+        function filterUrgentTable() {
+            const branch = document.getElementById('urgentBranchFilter')?.value || '';
+            const cat = document.getElementById('urgentCategoryFilter')?.value || '';
+
+            filteredUrgentItems = (data.urgentItems || []).filter(item => {
+                if (branch && item.branch !== branch) return false;
+                if (cat && item.category !== cat) return false;
+                return true;
+            });
+
+            const countEl = document.getElementById('urgent-filter-count');
+            if (countEl) countEl.innerText = `แสดง ${filteredUrgentItems.length} รายการ`;
+
+            renderUrgent();
+        }
+
+        function renderUrgent() {
+            const tbody = document.getElementById('urgent-tbody');
+            if (!tbody) return;
+
+            if (filteredUrgentItems.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-8 text-center text-slate-400 italic">ไม่พบสินค้าเร่งด่วนตามเงื่อนไขที่เลือก</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = filteredUrgentItems.map((item, idx) => {
+                let badgeClass = 'badge-danger';
+                let reason = '';
+                if (item.endStock === 0) {
+                    reason = '<span class="text-rose-600 font-bold">สต็อกหมดเกลี้ยง (Stockout)</span> ต้องเร่งสั่งซื้อทันที';
+                } else if (item.ratio < 0.2) {
+                    reason = '<span class="text-rose-600 font-semibold">วิกฤต (&lt; 20% ของจุดสั่งซื้อ)</span> เสี่ยงขาดสต็อกใน 1-2 วัน';
+                } else {
+                    reason = '<span class="text-amber-600 font-medium">ต่ำกว่าเกณฑ์</span> ส่ง PO ด่วน';
+                }
+
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-3 py-2.5 text-center font-bold text-slate-500">${idx + 1}</td>
+                        <td class="px-4 py-2.5 font-medium text-slate-900 whitespace-nowrap">${item.branch}</td>
+                        <td class="px-4 py-2.5 font-bold text-slate-800">${item.name} <span class="text-xs text-slate-400">(${item.code})</span></td>
+                        <td class="px-4 py-2.5 text-slate-600 whitespace-nowrap">${item.category}</td>
+                        <td class="px-4 py-2.5 text-slate-500 text-xs whitespace-nowrap">${item.supplier}</td>
+                        <td class="px-4 py-2.5 text-right font-extrabold ${item.endStock === 0 ? 'text-rose-600 text-base' : 'text-rose-700'}">${item.endStock}</td>
+                        <td class="px-4 py-2.5 text-right font-semibold text-slate-600">${item.minPoint}</td>
+                        <td class="px-4 py-2.5 text-right text-slate-700">฿${item.stockVal.toLocaleString('th-TH', {minimumFractionDigits: 2})}</td>
+                        <td class="px-4 py-2.5 text-center whitespace-nowrap">
+                            <span class="px-2 py-0.5 text-xs font-semibold rounded-full ${badgeClass}">${item.status}</span>
+                        </td>
+                        <td class="px-4 py-2.5 text-xs text-slate-700">${reason}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Initialize Monthly Table
+        function renderMonthly() {
+            const tbody = document.getElementById('monthly-tbody');
+            if (!tbody || !data.monthly) return;
+
+            tbody.innerHTML = data.monthly.map(m => {
+                let note = 'ปกติ';
+                if (m.month === '2025-03') note = '<span class="text-emerald-600 font-bold">★ ยอดขายสูงสุดประจำปี</span>';
+                if (m.month === '2025-08') note = '<span class="text-amber-600 font-medium">ยอดขายต่ำสุดรอบเต็มเดือน</span>';
+                if (m.month === '2026-10') note = '<span class="text-rose-600 font-semibold">⚠️ บันทึกแค่ 2 วัน (ข้อมูลไม่ครบเดือน)</span>';
+
+                return `
+                    <tr class="hover:bg-slate-50">
+                        <td class="px-4 py-2 font-mono font-bold text-slate-800 whitespace-nowrap">${m.month}</td>
+                        <td class="px-4 py-2 text-center text-slate-500">${m.records}</td>
+                        <td class="px-4 py-2 text-right font-semibold text-slate-900">฿${m.sales.toLocaleString('th-TH', {minimumFractionDigits: 2})}</td>
+                        <td class="px-4 py-2 text-right font-semibold text-emerald-600">฿${m.profit.toLocaleString('th-TH', {minimumFractionDigits: 2})}</td>
+                        <td class="px-4 py-2 text-right font-bold text-indigo-600">${m.margin.toFixed(2)}%</td>
+                        <td class="px-4 py-2 text-right">${m.qty.toLocaleString()}</td>
+                        <td class="px-4 py-2 text-xs">${note}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // ==========================================
+        // ADVANCED MULTI-CRITERIA FILTER SYSTEM
+        // ==========================================
+        let currentPage = 1;
+        let pageSize = 50;
+        let filteredRows = [...tableRows];
+        let currentPreset = 'all';
+
+        function changePageSize(val) {
+            pageSize = parseInt(val, 10);
+            currentPage = 1;
+            renderRawTable();
+        }
+
+        function applyPreset(preset) {
+            currentPreset = preset;
+            document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+            const btn = document.querySelector(`.filter-chip[data-preset="${preset}"]`);
+            if (btn) btn.classList.add('active');
+
+            // Reset specific inputs first
+            const searchInput = document.getElementById('searchInput');
+            const branchFilter = document.getElementById('branchFilter');
+            const catFilter = document.getElementById('categoryFilter');
+            const statusFilter = document.getElementById('statusFilter');
+            const supplierFilter = document.getElementById('supplierFilter');
+            const staffFilter = document.getElementById('staffFilter');
+            const periodFilter = document.getElementById('periodFilter');
+            const specialFilter = document.getElementById('specialFilter');
+
+            if (branchFilter) branchFilter.value = '';
+            if (catFilter) catFilter.value = '';
+            if (statusFilter) statusFilter.value = '';
+            if (supplierFilter) supplierFilter.value = '';
+            if (staffFilter) staffFilter.value = '';
+            if (periodFilter) periodFilter.value = '';
+            if (specialFilter) specialFilter.value = '';
+
+            if (preset === 'all') {
+                // all default
+            } else if (preset === 'stockout') {
+                if (specialFilter) specialFilter.value = 'zero_stock';
+            } else if (preset === 'reorder') {
+                if (statusFilter) statusFilter.value = 'ต้องสั่งซื้อ';
+            } else if (preset === 'anomaly') {
+                if (specialFilter) specialFilter.value = 'anomaly';
+            } else if (preset === 'damaged') {
+                if (specialFilter) specialFilter.value = 'has_damaged';
+            } else if (preset === 'stationery') {
+                if (catFilter) catFilter.value = 'เครื่องเขียน';
+            } else if (preset === 'market') {
+                if (branchFilter) branchFilter.value = 'สาขาตลาด';
+            } else if (preset === 'community') {
+                if (branchFilter) branchFilter.value = 'สาขาชุมชน';
+            } else if (preset === 'college') {
+                if (branchFilter) branchFilter.value = 'สาขาวิทยาลัย';
+            }
+
+            applyTableFilters();
+        }
+
+        function resetAllFilters() {
+            if (document.getElementById('searchInput')) document.getElementById('searchInput').value = '';
+            if (document.getElementById('branchFilter')) document.getElementById('branchFilter').value = '';
+            if (document.getElementById('categoryFilter')) document.getElementById('categoryFilter').value = '';
+            if (document.getElementById('statusFilter')) document.getElementById('statusFilter').value = '';
+            if (document.getElementById('supplierFilter')) document.getElementById('supplierFilter').value = '';
+            if (document.getElementById('staffFilter')) document.getElementById('staffFilter').value = '';
+            if (document.getElementById('periodFilter')) document.getElementById('periodFilter').value = '';
+            if (document.getElementById('specialFilter')) document.getElementById('specialFilter').value = '';
+
+            document.querySelectorAll('.filter-chip').forEach(btn => btn.classList.remove('active'));
+            const allBtn = document.querySelector(`.filter-chip[data-preset="all"]`);
+            if (allBtn) allBtn.classList.add('active');
+            currentPreset = 'all';
+
+            applyTableFilters();
+        }
+
+        function clearSingleFilter(filterId) {
+            const el = document.getElementById(filterId);
+            if (el) el.value = '';
+            applyTableFilters();
+        }
+
+        function applyTableFilters() {
+            const search = (document.getElementById('searchInput')?.value || '').trim().toLowerCase();
+            const branch = document.getElementById('branchFilter')?.value || '';
+            const cat = document.getElementById('categoryFilter')?.value || '';
+            const status = document.getElementById('statusFilter')?.value || '';
+            const supplier = document.getElementById('supplierFilter')?.value || '';
+            const staff = document.getElementById('staffFilter')?.value || '';
+            const period = document.getElementById('periodFilter')?.value || '';
+            const special = document.getElementById('specialFilter')?.value || '';
+
+            filteredRows = tableRows.filter(r => {
+                if (branch && r.branch !== branch) return false;
+                if (cat && r.cat !== cat) return false;
+                if (status && r.status !== status) return false;
+                if (supplier && r.supplier !== supplier) return false;
+                if (staff && r.staff !== staff) return false;
+                
+                // Period filter (year or month)
+                if (period) {
+                    if (period.length === 4 && r.year !== period) return false;
+                    if (period.length === 7 && r.month !== period) return false;
+                }
+
+                // Special logic filter
+                if (special === 'zero_stock' && r.end !== 0) return false;
+                if (special === 'below_min' && r.end >= r.min) return false;
+                if (special === 'anomaly' && !r.isAnomaly) return false;
+                if (special === 'has_damaged' && r.dmg <= 0) return false;
+                if (special === 'has_sold' && r.out <= 0) return false;
+
+                // Keyword search
+                if (search) {
+                    const matchStr = `${r.id} ${r.name} ${r.code} ${r.branch} ${r.cat} ${r.supplier} ${r.staff} ${r.status}`.toLowerCase();
+                    if (!matchStr.includes(search)) return false;
+                }
+
+                return true;
+            });
+
+            currentPage = 1;
+            updateFilterStats();
+            updateActiveFilterTags();
+            renderRawTable();
+        }
+
+        function updateFilterStats() {
+            const total = filteredRows.length;
+            const allTotal = tableRows.length || 1000;
+            const pct = ((total / allTotal) * 100).toFixed(1);
+
+            let sSales = 0;
+            let sProfit = 0;
+            let sDamaged = 0;
+            let sQty = 0;
+
+            for (let i = 0; i < total; i++) {
+                sSales += filteredRows[i].sales;
+                sProfit += filteredRows[i].profit;
+                sDamaged += filteredRows[i].dmg;
+                sQty += filteredRows[i].out;
+            }
+
+            const margin = sSales > 0 ? ((sProfit / sSales) * 100).toFixed(2) : '0.00';
+            const dmgRate = sQty > 0 ? ((sDamaged / sQty) * 100).toFixed(2) : '0.00';
+
+            const countEl = document.getElementById('stat-filtered-rows');
+            const pctEl = document.getElementById('stat-filtered-pct');
+            const salesEl = document.getElementById('stat-filtered-sales');
+            const profitEl = document.getElementById('stat-filtered-profit');
+            const marginEl = document.getElementById('stat-filtered-margin');
+            const dmgEl = document.getElementById('stat-filtered-damaged');
+            const dmgRateEl = document.getElementById('stat-filtered-dmg-rate');
+            const filterCountEl = document.getElementById('filter-count');
+
+            if (countEl) countEl.innerText = `${total.toLocaleString()} แถว`;
+            if (pctEl) pctEl.innerText = `(${pct}% ของข้อมูล)`;
+            if (salesEl) salesEl.innerText = `฿${sSales.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+            if (profitEl) profitEl.innerText = `฿${sProfit.toLocaleString('th-TH', {minimumFractionDigits: 2})}`;
+            if (marginEl) marginEl.innerText = `${margin}%`;
+            if (dmgEl) dmgEl.innerText = `${sDamaged.toLocaleString()} หน่วย`;
+            if (dmgRateEl) dmgRateEl.innerText = `~${dmgRate}% ของยอดขาย`;
+            if (filterCountEl) filterCountEl.innerText = `แสดง ${total.toLocaleString()} จาก ${allTotal.toLocaleString()} รายการ`;
+        }
+
+        function updateActiveFilterTags() {
+            const container = document.getElementById('active-filter-tags');
+            if (!container) return;
+
+            const tags = [];
+            const search = document.getElementById('searchInput')?.value || '';
+            const branch = document.getElementById('branchFilter')?.value || '';
+            const cat = document.getElementById('categoryFilter')?.value || '';
+            const status = document.getElementById('statusFilter')?.value || '';
+            const supplier = document.getElementById('supplierFilter')?.value || '';
+            const staff = document.getElementById('staffFilter')?.value || '';
+            const period = document.getElementById('periodFilter')?.value || '';
+            const special = document.getElementById('specialFilter')?.value || '';
+
+            if (search) tags.push({ label: `ค้นหา: "${search}"`, id: 'searchInput' });
+            if (branch) tags.push({ label: `สาขา: ${branch}`, id: 'branchFilter' });
+            if (cat) tags.push({ label: `หมวด: ${cat}`, id: 'categoryFilter' });
+            if (status) tags.push({ label: `สถานะ: ${status}`, id: 'statusFilter' });
+            if (supplier) tags.push({ label: `ผู้จำหน่าย: ${supplier}`, id: 'supplierFilter' });
+            if (staff) tags.push({ label: `ผู้บันทึก: ${staff}`, id: 'staffFilter' });
+            if (period) tags.push({ label: `เวลา: ${period}`, id: 'periodFilter' });
+            if (special) {
+                let specLabel = special;
+                if (special === 'zero_stock') specLabel = 'สต็อก = 0';
+                if (special === 'below_min') specLabel = 'ต่ำกว่าจุดสั่งซื้อ';
+                if (special === 'anomaly') specLabel = 'ข้อมูลผิดปกติ 67 แถว';
+                if (special === 'has_damaged') specLabel = 'มีความเสียหาย';
+                if (special === 'has_sold') specLabel = 'มีการขายออก';
+                tags.push({ label: `พิเศษ: ${specLabel}`, id: 'specialFilter' });
+            }
+
+            if (tags.length === 0) {
+                container.innerHTML = `<span class="text-slate-400 italic text-[11px]">ยังไม่มีตัวกรองเพิ่มเติม (แสดงทั้งหมด 1,000 รายการ)</span>`;
+            } else {
+                container.innerHTML = tags.map(t => `
+                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-xs font-medium bg-sky-100 text-sky-800 border border-sky-300">
+                        ${t.label}
+                        <button type="button" onclick="clearSingleFilter('${t.id}')" class="ml-1.5 inline-flex items-center justify-center text-sky-600 hover:text-sky-900 font-bold">✕</button>
+                    </span>
+                `).join('') + `
+                    <button onclick="resetAllFilters()" class="text-rose-600 hover:text-rose-800 text-[11px] underline font-medium ml-1">ล้างตัวกรอง</button>
+                `;
+            }
+        }
+
+        function renderRawTable() {
+            const tbody = document.getElementById('rawdata-tbody');
+            const pageInfo = document.getElementById('page-info');
+            if (!tbody) return;
+
+            const total = filteredRows.length;
+            if (total === 0) {
+                tbody.innerHTML = `<tr><td colspan="17" class="px-4 py-12 text-center text-slate-400 italic text-sm">ไม่พบข้อมูลที่ตรงกับเงื่อนไขตัวกรองที่คุณกำหนด กรุณาปรับเปลี่ยนเงื่อนไขหรือกดปุ่ม "ล้างตัวกรองทั้งหมด"</td></tr>`;
+                if (pageInfo) pageInfo.innerText = `หน้า 0 จาก 0`;
+                return;
+            }
+
+            const maxPage = Math.ceil(total / pageSize) || 1;
+            if (currentPage > maxPage) currentPage = maxPage;
+
+            const startIdx = (currentPage - 1) * pageSize;
+            const pageData = filteredRows.slice(startIdx, startIdx + pageSize);
+
+            if (pageInfo) pageInfo.innerText = `หน้า ${currentPage} จาก ${maxPage} (${total.toLocaleString()} รายการ)`;
+
+            tbody.innerHTML = pageData.map(r => {
+                let badgeClass = 'badge-normal';
+                if (r.status === 'ต้องสั่งซื้อ') badgeClass = 'badge-danger';
+                if (r.status === 'ใกล้หมด') badgeClass = 'badge-warning';
+
+                const isUrgentZero = (r.end === 0);
+                const hasAnomaly = r.isAnomaly;
+
+                return `
+                    <tr class="hover:bg-slate-50 ${hasAnomaly ? 'bg-amber-50/30' : ''}">
+                        <td class="px-3 py-1.5 font-mono text-slate-800 font-medium">${r.id}</td>
+                        <td class="px-3 py-1.5 text-slate-500 whitespace-nowrap">${r.date}</td>
+                        <td class="px-3 py-1.5 text-slate-700 whitespace-nowrap">${r.branch}</td>
+                        <td class="px-3 py-1.5 font-medium text-slate-800 whitespace-nowrap">${r.name}</td>
+                        <td class="px-3 py-1.5 text-slate-500 whitespace-nowrap">${r.cat}</td>
+                        <td class="px-3 py-1.5 text-right">${r.start}</td>
+                        <td class="px-3 py-1.5 text-right text-emerald-600">+${r.in}</td>
+                        <td class="px-3 py-1.5 text-right text-sky-600 font-medium">-${r.out}</td>
+                        <td class="px-3 py-1.5 text-right text-rose-500">-${r.dmg}</td>
+                        <td class="px-3 py-1.5 text-right font-bold ${isUrgentZero ? 'text-rose-600 font-extrabold text-sm' : 'text-slate-900'}">${r.end}</td>
+                        <td class="px-3 py-1.5 text-right text-slate-500">${r.min}</td>
+                        <td class="px-3 py-1.5 text-right">${r.price.toFixed(1)}</td>
+                        <td class="px-3 py-1.5 text-right text-slate-500">${r.cost.toFixed(1)}</td>
+                        <td class="px-3 py-1.5 text-right font-semibold text-sky-800">${r.sales.toLocaleString('th-TH', {minimumFractionDigits: 1})}</td>
+                        <td class="px-3 py-1.5 text-right font-semibold text-emerald-700">${r.profit.toLocaleString('th-TH', {minimumFractionDigits: 1})}</td>
+                        <td class="px-3 py-1.5 text-center whitespace-nowrap"><span class="px-2 py-0.5 text-[10px] rounded-full ${badgeClass}">${r.status}</span></td>
+                        <td class="px-3 py-1.5 text-slate-400 whitespace-nowrap text-[11px]">${r.staff}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        function changePage(delta) {
+            const maxPage = Math.ceil(filteredRows.length / pageSize) || 1;
+            currentPage += delta;
+            if (currentPage < 1) currentPage = 1;
+            if (currentPage > maxPage) currentPage = maxPage;
+            renderRawTable();
+        }
+
+        // Export Filtered Rows to CSV
+        function exportFilteredCSV() {
+            if (filteredRows.length === 0) {
+                alert('ไม่พบข้อมูลที่ตรงกับตัวกรองเพื่อส่งออก');
+                return;
+            }
+
+            const headers = [
+                'รหัสรายการ', 'วันที่', 'สาขา', 'รหัสสินค้า', 'ชื่อสินค้า', 'หมวดหมู่', 'ผู้จำหน่าย',
+                'สต็อกต้นวัน_หน่วย', 'รับเข้า_หน่วย', 'ขายออก_หน่วย', 'เสียหาย_หน่วย', 'สต็อกปลายวัน_หน่วย',
+                'จุดสั่งซื้อขั้นต่ำ_หน่วย', 'ราคาขายต่อหน่วย_บาท', 'ต้นทุนต่อหน่วย_บาท', 'มูลค่าสต็อกปลายวัน_บาท',
+                'ยอดขายประมาณการ_บาท', 'กำไรขั้นต้นประมาณการ_บาท', 'สถานะสต็อก', 'พนักงานบันทึก'
+            ];
+
+            const csvRows = [headers.join(',')];
+
+            filteredRows.forEach(r => {
+                const values = [
+                    r.id, r.date, `"${r.branch}"`, r.code, `"${r.name}"`, `"${r.cat}"`, `"${r.supplier}"`,
+                    r.start, r.in, r.out, r.dmg, r.end,
+                    r.min, r.price, r.cost, r.stockVal,
+                    r.sales, r.profit, `"${r.status}"`, `"${r.staff}"`
+                ];
+                csvRows.push(values.join(','));
+            });
+
+            const csvString = "\uFEFF" + csvRows.join('\r\n');
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Filtered_Retail_Data_${new Date().toISOString().slice(0, 10)}.csv`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Initialize Charts
+        function initCharts() {
+            // 1. Monthly Trend Chart
+            const ctxMonthly = document.getElementById('chart-monthly-trend')?.getContext('2d');
+            if (ctxMonthly && data.monthly) {
+                new Chart(ctxMonthly, {
+                    type: 'bar',
+                    data: {
+                        labels: data.monthly.map(m => m.month),
+                        datasets: [
+                            {
+                                label: 'ยอดขาย (บาท)',
+                                data: data.monthly.map(m => m.sales),
+                                backgroundColor: 'rgba(2, 132, 199, 0.75)',
+                                borderColor: 'rgb(2, 132, 199)',
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'กำไรขั้นต้น (บาท)',
+                                data: data.monthly.map(m => m.profit),
+                                backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                                borderColor: 'rgb(16, 185, 129)',
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            },
+                            {
+                                type: 'line',
+                                label: 'GP Margin (%)',
+                                data: data.monthly.map(m => m.margin),
+                                borderColor: '#818cf8',
+                                backgroundColor: '#818cf8',
+                                borderWidth: 2,
+                                pointRadius: 2.5,
+                                yAxisID: 'y1'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        scales: {
+                            y: {
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: { display: true, text: 'บาท' },
+                                ticks: { font: { family: 'Prompt' } }
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: { display: true, text: '%' },
+                                grid: { drawOnChartArea: false },
+                                min: 25,
+                                max: 55,
+                                ticks: { font: { family: 'Prompt' } }
+                            },
+                            x: {
+                                ticks: { font: { family: 'Prompt', size: 10 }, maxRotation: 45 }
+                            }
+                        },
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { family: 'Prompt', size: 11 } } }
+                        }
+                    }
+                });
+            }
+
+            // 2. Category Performance Chart
+            const ctxCat = document.getElementById('chart-category')?.getContext('2d');
+            if (ctxCat && data.categories) {
+                const sorted = [...data.categories].sort((a,b) => b.sales - a.sales);
+                new Chart(ctxCat, {
+                    type: 'bar',
+                    data: {
+                        labels: sorted.map(c => c.category),
+                        datasets: [
+                            {
+                                label: 'ยอดขาย (บาท)',
+                                data: sorted.map(c => c.sales),
+                                backgroundColor: 'rgba(99, 102, 241, 0.8)'
+                            },
+                            {
+                                label: 'กำไรขั้นต้น (บาท)',
+                                data: sorted.map(c => c.profit),
+                                backgroundColor: 'rgba(16, 185, 129, 0.8)'
+                            }
+                        ]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { family: 'Prompt', size: 11 } } }
+                        },
+                        scales: {
+                            x: { ticks: { font: { family: 'Prompt' } } },
+                            y: { ticks: { font: { family: 'Prompt', size: 11 } } }
+                        }
+                    }
+                });
+            }
+
+            // 3. Branch Comparison Chart
+            const ctxBranch = document.getElementById('chart-branch')?.getContext('2d');
+            if (ctxBranch && data.branches) {
+                new Chart(ctxBranch, {
+                    type: 'bar',
+                    data: {
+                        labels: data.branches.map(b => b.branch),
+                        datasets: [
+                            {
+                                label: 'ยอดขาย (บาท)',
+                                data: data.branches.map(b => b.sales),
+                                backgroundColor: 'rgba(2, 132, 199, 0.8)'
+                            },
+                            {
+                                label: 'กำไรขั้นต้น (บาท)',
+                                data: data.branches.map(b => b.profit),
+                                backgroundColor: 'rgba(16, 185, 129, 0.8)'
+                            },
+                            {
+                                label: 'สต็อกคงเหลือปัจจุบัน (บาท)',
+                                data: data.branches.map(b => b.currentStockVal),
+                                backgroundColor: 'rgba(245, 158, 11, 0.8)'
+                            }
+                        ]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', labels: { font: { family: 'Prompt', size: 11 } } }
+                        },
+                        scales: {
+                            y: { ticks: { font: { family: 'Prompt' } } },
+                            x: { ticks: { font: { family: 'Prompt', size: 12 } } }
+                        }
+                    }
+                });
+            }
+
+            // 4. Stock Status Doughnut Chart
+            const ctxStatus = document.getElementById('chart-stock-status')?.getContext('2d');
+            if (ctxStatus) {
+                new Chart(ctxStatus, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['ต้องสั่งซื้อ (55%)', 'ใกล้หมด (18.3%)', 'ปกติ (26.7%)'],
+                        datasets: [{
+                            data: [33, 11, 16],
+                            backgroundColor: [
+                                '#f43f5e', // rose-500
+                                '#f59e0b', // amber-500
+                                '#10b981'  // emerald-500
+                            ],
+                            borderWidth: 2,
+                            borderColor: '#ffffff'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'right', labels: { font: { family: 'Prompt', size: 12 } } }
+                        }
+                    }
+                });
+            }
+        }
+
+        // Initialize event listeners
+        document.addEventListener('DOMContentLoaded', () => {
+            renderAnomalies();
+            renderCategories();
+            renderUrgent();
+            renderMonthly();
+            updateFilterStats();
+            updateActiveFilterTags();
+            renderRawTable();
+            initCharts();
+
+            // Table filter listeners
+            document.getElementById('searchInput')?.addEventListener('input', applyTableFilters);
+            document.getElementById('branchFilter')?.addEventListener('change', applyTableFilters);
+            document.getElementById('categoryFilter')?.addEventListener('change', applyTableFilters);
+            document.getElementById('statusFilter')?.addEventListener('change', applyTableFilters);
+            document.getElementById('supplierFilter')?.addEventListener('change', applyTableFilters);
+            document.getElementById('staffFilter')?.addEventListener('change', applyTableFilters);
+            document.getElementById('periodFilter')?.addEventListener('change', applyTableFilters);
+            document.getElementById('specialFilter')?.addEventListener('change', applyTableFilters);
+        });
+    </script>
+</body>
+</html>
